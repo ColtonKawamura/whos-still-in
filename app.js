@@ -18,20 +18,15 @@ function text(id, value) {
   document.getElementById(id).textContent = value;
 }
 
-function renderVoluntary(data) {
-  const reports = data.voluntary;
-  const stillIn = reports.reported_still_in;
-  text("voluntary-summary", `${number.format(stillIn)} still-in and ${number.format(reports.reported_out)} out respondents accepted${reports.as_of ? ` · aggregate updated ${reports.as_of}` : " · no submissions included"}.`);
-  document.getElementById("rank-empty").hidden = stillIn > 0;
-  document.getElementById("rank-table-wrap").hidden = stillIn === 0;
-  const rows = document.getElementById("rank-rows");
+function renderDistribution(tbodyId, entries, key, group) {
+  const rows = document.getElementById(tbodyId);
   rows.replaceChildren();
-  for (const entry of reports.rank_distribution) {
+  for (const entry of entries) {
     if (!entry.count) continue;
     const row = document.createElement("tr");
     const heading = document.createElement("th");
     heading.scope = "row";
-    heading.textContent = entry.rank;
+    heading.textContent = entry[key];
     const count = document.createElement("td");
     count.textContent = number.format(entry.count);
     const share = document.createElement("td");
@@ -39,11 +34,27 @@ function renderVoluntary(data) {
     const bar = document.createElement("progress");
     bar.max = 100;
     bar.value = entry.percent;
-    bar.setAttribute("aria-label", `${entry.rank}: ${entry.percent}% of still-in respondents`);
+    bar.setAttribute("aria-label", `${entry[key]}: ${entry.percent}% of ${group} respondents`);
     share.append(bar);
     row.append(heading, count, share);
     rows.append(row);
   }
+}
+
+function renderVoluntary(data) {
+  const reports = data.voluntary;
+  const stillIn = reports.reported_still_in;
+  const out = reports.reported_out;
+  text("voluntary-summary", `${number.format(stillIn)} still-in and ${number.format(out)} out respondents accepted${reports.as_of ? ` · aggregate updated ${reports.as_of}` : " · no submissions included"}.`);
+  document.getElementById("rank-empty").hidden = stillIn > 0;
+  document.getElementById("rank-table-wrap").hidden = stillIn === 0;
+  renderDistribution("rank-rows", reports.rank_distribution, "rank", "still-in");
+  document.getElementById("out-empty").hidden = out > 0;
+  for (const id of ["highest-rank-table-wrap", "industry-table-wrap"]) {
+    document.getElementById(id).hidden = out === 0;
+  }
+  renderDistribution("highest-rank-rows", reports.highest_rank_distribution, "rank", "out");
+  renderDistribution("industry-rows", reports.industry_distribution, "industry", "out");
 }
 
 function render(data) {

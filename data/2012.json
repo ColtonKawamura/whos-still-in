@@ -151,6 +151,205 @@
         "count": 0,
         "percent": null
       }
+    ],
+    "highest_rank_distribution": [
+      {
+        "rank": "O-1",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "rank": "O-2",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "rank": "O-3",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "rank": "O-4",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "rank": "O-5",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "rank": "O-6",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "rank": "O-7",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "rank": "O-8",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "rank": "O-9",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "rank": "O-10",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "rank": "W-1",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "rank": "W-2",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "rank": "W-3",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "rank": "W-4",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "rank": "W-5",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "rank": "Other",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "rank": "Not disclosed",
+        "count": 0,
+        "percent": null
+      }
+    ],
+    "industry_distribution": [
+      {
+        "industry": "Self-employed / entrepreneur",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "industry": "Tech / software",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "industry": "Law",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "industry": "Civil service / government",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "industry": "Defense / aerospace / government contracting",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "industry": "Construction / trades / real estate",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "industry": "Engineering / manufacturing",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "industry": "Finance / banking / insurance",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "industry": "Consulting / business services",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "industry": "Healthcare / medicine",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "industry": "Education / academia",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "industry": "Energy / utilities",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "industry": "Transportation / aviation / maritime / logistics",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "industry": "Sales / marketing / retail",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "industry": "Media / entertainment / arts",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "industry": "Nonprofit / ministry",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "industry": "Politics / public policy",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "industry": "Law enforcement / first responder",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "industry": "Student / graduate school",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "industry": "Not working / retired / caregiving",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "industry": "Other",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "industry": "Not disclosed",
+        "count": 0,
+        "percent": null
+      }
     ]
   }
 }

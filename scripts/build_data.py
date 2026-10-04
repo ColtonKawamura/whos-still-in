@@ -10,6 +10,16 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 RANKS = [f"O-{grade}" for grade in range(1, 11)] + [f"W-{grade}" for grade in range(1, 6)] + ["Other", "Not disclosed"]
+INDUSTRIES = [
+    "Self-employed / entrepreneur", "Tech / software", "Law", "Civil service / government",
+    "Defense / aerospace / government contracting", "Construction / trades / real estate",
+    "Engineering / manufacturing", "Finance / banking / insurance", "Consulting / business services",
+    "Healthcare / medicine", "Education / academia", "Energy / utilities",
+    "Transportation / aviation / maritime / logistics", "Sales / marketing / retail",
+    "Media / entertainment / arts", "Nonprofit / ministry", "Politics / public policy",
+    "Law enforcement / first responder", "Student / graduate school",
+    "Not working / retired / caregiving", "Other", "Not disclosed",
+]
 
 
 def read_sources(source_file):
@@ -50,7 +60,7 @@ def read_sources(source_file):
                     raise ValueError("sources require a title and HTTPS URL")
                 source["sources"].append({"title": row["title"], "url": row["url"]})
             elif kind == "voluntary":
-                key = (year, row["service"], row["status"], row["rank"])
+                key = (year, row["service"], row["status"], row["rank"], row["industry"])
                 if key in seen_reports:
                     raise ValueError(f"duplicate voluntary aggregate: {key}")
                 seen_reports.add(key)
@@ -66,8 +76,18 @@ def read_sources(source_file):
     return list(classes.values())
 
 
+def distribution(labels, counts, total, key):
+    return [
+        {key: label, "count": counts[label],
+         "percent": round(100 * counts[label] / total, 1) if total else None}
+        for label in labels
+    ]
+
+
 def build_voluntary(rows):
     counts = {rank: 0 for rank in RANKS}
+    highest = {rank: 0 for rank in RANKS}
+    industries = {industry: 0 for industry in INDUSTRIES}
     still_in = out = 0
     report_dates = []
     for row in rows:
@@ -78,22 +98,23 @@ def build_voluntary(rows):
         if report_date > date.today():
             raise ValueError("report aggregate date cannot be in the future")
         report_dates.append(row["as_of"])
-        if row["status"] == "still_in" and row["rank"] in RANKS:
+        industry = row.get("industry", "")
+        if row["status"] == "still_in" and row["rank"] in RANKS and industry == "":
             still_in += count
             counts[row["rank"]] += count
-        elif row["status"] == "out" and row["rank"] == "":
+        elif row["status"] == "out" and row["rank"] in RANKS and industry in INDUSTRIES:
             out += count
+            highest[row["rank"]] += count
+            industries[industry] += count
         else:
-            raise ValueError("invalid voluntary status/rank combination")
+            raise ValueError("invalid voluntary status/rank/industry combination")
     return {
         "reported_still_in": still_in,
         "reported_out": out,
         "as_of": max(report_dates) if report_dates else None,
-        "rank_distribution": [
-            {"rank": rank, "count": count,
-             "percent": round(100 * count / still_in, 1) if still_in else None}
-            for rank, count in counts.items()
-        ],
+        "rank_distribution": distribution(RANKS, counts, still_in, "rank"),
+        "highest_rank_distribution": distribution(RANKS, highest, out, "rank"),
+        "industry_distribution": distribution(INDUSTRIES, industries, out, "industry"),
     }
 
 
