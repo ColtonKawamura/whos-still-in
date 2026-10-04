@@ -1,5 +1,5 @@
 name: Voluntary serving-status report
-description: Report or update your own USNA class, serving status, pay grade, warfare community, and (optionally) highest grade and industry if out.
+description: Report or update your own USNA class, serving status, pay grade, warfare community, and (optionally) pay grade at separation and industry if out.
 title: "[Voluntary report] Class of "
 labels: ["voluntary-report"]
 body:
@@ -110,8 +110,8 @@ body:
   - type: dropdown
     id: highest-rank
     attributes:
-      label: Highest pay grade held — Out only (optional)
-      description: If you are out, choose the highest pay grade you held while serving. If still in, choose Not disclosed / not applicable.
+      label: Pay grade at separation — Out only (optional)
+      description: If you are out, choose your pay grade when you separated or retired (the rank you got out at). If still in, choose Not disclosed / not applicable.
       options:
         - Not disclosed / not applicable
         - O-1

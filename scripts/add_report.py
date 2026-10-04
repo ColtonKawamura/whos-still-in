@@ -30,11 +30,13 @@ LABELS = {
     "service": "Current service (or last service if out)",
     "rank": "Current pay grade — Still in only",
     "community": "Warfare community / designator (select all that apply)",
-    "highest_rank": "Highest pay grade held — Out only (optional)",
+    "highest_rank": "Pay grade at separation — Out only (optional)",
     "industry": "Current industry — Out only (optional)",
     "as_of": "Status as of (YYYY-MM-DD)",
     "consent": "Voluntary participation",
 }
+# Earlier form labels, so issues filed before a field was renamed are still parsed when re-checked.
+LEGACY_LABELS = {"highest_rank": ["Highest pay grade held — Out only (optional)"]}
 STATUSES = {"Still in (active or reserve)": "still_in", "Out (separated or retired)": "out"}
 SERVICES = {
     "U.S. Navy": "USN", "U.S. Marine Corps": "USMC", "U.S. Army": "USA", "U.S. Air Force": "USAF",
@@ -54,6 +56,10 @@ def parse_sections(body):
 def report_row(body, review_date):
     """Return the aggregate CSV key fields for one issue body, or raise ValueError."""
     sections = parse_sections(body.replace("\r\n", "\n"))
+    for key, old_labels in LEGACY_LABELS.items():
+        for old in old_labels:
+            if LABELS[key] not in sections and old in sections:
+                sections[LABELS[key]] = sections.pop(old)
     missing = [label for label in LABELS.values() if label not in sections]
     if missing:
         raise ValueError(f"issue is missing form sections: {missing}")

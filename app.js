@@ -11,10 +11,11 @@ const serviceLabels = {
 const statusLabels = { still_in: "Still in", out: "Out" };
 const dimensions = {
   community: { label: "Warfare community", filter: "filter-community" },
-  rank: { label: "Rank (current / highest)", filter: "filter-rank" },
   status: { label: "Serving status", filter: "filter-status" },
   service: { label: "Current / last service", filter: "filter-service" },
-  industry: { label: "Industry (out only)" },
+  current_rank: { label: "Current pay grade (still in)", filter: "filter-current-rank", only: "still_in" },
+  separation_rank: { label: "Pay grade at separation (out)", filter: "filter-separation-rank", only: "out" },
+  industry: { label: "Current industry (out)", filter: "filter-industry", only: "out" },
 };
 const palette = ["#00205B", "#C5B783", "#4A6FA5", "#74632F", "#8FA9D1", "#2E3B4E", "#E2D6A8", "#5C7C99", "#A38F4D", "#B8C4D6"];
 let chart;
@@ -74,7 +75,9 @@ function renderVoluntary(data) {
 
 function valuesOf(response, dimension) {
   if (dimension === "community") return response.communities;
-  const value = response[dimension];
+  const only = dimensions[dimension].only;
+  if (only && response.status !== only) return [];
+  const value = dimension.endsWith("_rank") ? response.rank : response[dimension];
   return value === null || value === undefined ? [] : [value];
 }
 
@@ -102,7 +105,8 @@ function setupExplorer(reports) {
     responses,
     order: {
       status: ["still_in", "out"],
-      rank: reports.rank_distribution.map((entry) => entry.rank),
+      current_rank: reports.rank_distribution.map((entry) => entry.rank),
+      separation_rank: reports.highest_rank_distribution.map((entry) => entry.rank),
       community: (reports.community_distribution || []).map((entry) => entry.community),
       industry: reports.industry_distribution.map((entry) => entry.industry),
     },
@@ -143,8 +147,11 @@ function updateExplorer() {
   if (split === breakdown) split = "";
   const { filters, responses } = filteredResponses();
   const total = responses.reduce((sum, response) => sum + response.count, 0);
+  const percent = document.getElementById("show-as").value === "percent";
   const categories = orderedValues(breakdown);
-  const notApplicable = "Not applicable (still in)";
+  const notApplicable = split && dimensions[split].only
+    ? `Not applicable (${statusLabels[dimensions[split].only === "out" ? "still_in" : "out"].toLowerCase()})`
+    : "Not applicable";
   const splitOf = (response) => {
     if (!split) return [""];
     const values = valuesOf(response, split);
@@ -173,7 +180,11 @@ function updateExplorer() {
     ? ` matching ${filters.map(([dimension, value]) => labelFor(dimension, value)).join(" + ")}`
     : "";
   let summary = `${number.format(total)} respondent${total === 1 ? "" : "s"}${filterText}.`;
-  if (breakdown === "industry" && without) summary += ` ${number.format(without)} still-in respondent${without === 1 ? " is" : "s are"} not included in the industry breakdown.`;
+  const only = dimensions[breakdown].only;
+  if (only && without) {
+    const excluded = statusLabels[only === "out" ? "still_in" : "out"].toLowerCase();
+    summary += ` ${number.format(without)} ${excluded} respondent${without === 1 ? " is" : "s are"} not included in the ${dimensions[breakdown].label.toLowerCase()} breakdown.`;
+  }
   if (breakdown === "community" || split === "community") summary += " Respondents with multiple communities appear in each one.";
   text("explore-summary", summary);
 
@@ -185,7 +196,8 @@ function updateExplorer() {
     head.append(cell);
   }
   document.getElementById("explore-head").replaceChildren(head);
-  const base = breakdown === "industry" ? total - without : total;
+  const base = total - without;
+  const share = (value) => base ? `${(100 * value / base).toFixed(1)}%` : "—";
   document.getElementById("explore-rows").replaceChildren(...shown.map((category) => {
     const row = document.createElement("tr");
     const heading = document.createElement("th");
@@ -193,9 +205,12 @@ function updateExplorer() {
     heading.textContent = labelFor(breakdown, category);
     row.append(heading);
     const values = [
-      ...(split ? shownSplit.map((value) => number.format(counts.get(category).get(value))) : []),
+      ...(split ? shownSplit.map((value) => {
+        const count = counts.get(category).get(value);
+        return percent ? share(count) : number.format(count);
+      }) : []),
       number.format(totals.get(category)),
-      base ? `${(100 * totals.get(category) / base).toFixed(1)}%` : "—",
+      share(totals.get(category)),
     ];
     for (const value of values) {
       const cell = document.createElement("td");
@@ -212,7 +227,10 @@ function updateExplorer() {
   canvas.setAttribute("aria-label", `Voluntary respondents by ${dimensions[breakdown].label.toLowerCase()}${split ? `, split by ${dimensions[split].label.toLowerCase()}` : ""}. Figures are also shown in the table below.`);
   const datasets = shownSplit.map((value) => ({
     label: split ? labelFor(split, value) : "Respondents",
-    data: shown.map((category) => counts.get(category).get(value)),
+    data: shown.map((category) => {
+      const count = counts.get(category).get(value);
+      return percent ? (base ? Math.round(1000 * count / base) / 10 : 0) : count;
+    }),
     backgroundColor: palette[splitValues.indexOf(value) % palette.length],
   }));
   wrap.hidden = shown.length === 0;
@@ -229,12 +247,18 @@ function updateExplorer() {
         maintainAspectRatio: false,
         animation: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? false : undefined,
         scales: {
-          x: { stacked: true, beginAtZero: true, ticks: { precision: 0 }, title: { display: true, text: "Respondents" } },
+          x: {
+            stacked: true, beginAtZero: true, ticks: percent ? { callback: (value) => `${value}%` } : { precision: 0 },
+            title: { display: true, text: percent ? "Share of respondents in the breakdown" : "Respondents" },
+          },
           y: { stacked: true },
         },
-        plugins: { legend: { display: Boolean(split) } },
+        plugins: {
+          legend: { display: Boolean(split) },
+          tooltip: { callbacks: { label: (context) => `${context.dataset.label}: ${percent ? `${context.raw}%` : number.format(context.raw)}` } },
+        },
         onHover: (event, elements) => {
-          event.native.target.style.cursor = elements.length && dimensions[breakdown].filter ? "pointer" : "default";
+          event.native.target.style.cursor = elements.length ? "pointer" : "default";
         },
         onClick: (event, elements) => {
           if (!elements.length) return;
@@ -249,12 +273,10 @@ function updateExplorer() {
 }
 
 function drillDown(dimension, value) {
-  const config = dimensions[dimension];
-  if (!config.filter) return;
-  document.getElementById(config.filter).value = value;
+  document.getElementById(dimensions[dimension].filter).value = value;
   const breakdown = document.getElementById("breakdown");
   const next = Object.keys(dimensions).find((key) =>
-    key !== dimension && (!dimensions[key].filter || !document.getElementById(dimensions[key].filter).value));
+    key !== dimension && !document.getElementById(dimensions[key].filter).value);
   if (next) breakdown.value = next;
   updateExplorer();
 }
@@ -393,8 +415,9 @@ async function initialize() {
     controls.addEventListener("reset", (event) => {
       event.preventDefault();
       for (const config of Object.values(dimensions)) {
-        if (config.filter) document.getElementById(config.filter).value = "";
+        document.getElementById(config.filter).value = "";
       }
+      document.getElementById("show-as").value = "count";
       document.getElementById("breakdown").value = "community";
       document.getElementById("split").value = "status";
       updateExplorer();

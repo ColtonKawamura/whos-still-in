@@ -46,6 +46,13 @@ class AddReportTests(unittest.TestCase):
         self.assertEqual((row["service"], row["rank"], row["community"], row["industry"]),
                          ("USMC", "O-3", "Not disclosed", "Not disclosed"))
 
+    def test_accepts_issues_filed_with_legacy_highest_rank_label(self):
+        text = body(status="Out (separated or retired)", rank="Not disclosed / not applicable", highest_rank="O-4")
+        old = add_report.LEGACY_LABELS["highest_rank"][0]
+        text = text.replace(f"### {add_report.LABELS['highest_rank']}\n", f"### {old}\n")
+        self.assertNotIn(add_report.LABELS["highest_rank"], text)
+        self.assertEqual(add_report.report_row(text, REVIEW)["rank"], "O-4")
+
     def test_rejects_invalid_reports(self):
         for answers in [{"consent": "- [X] one\n- [ ] two\n- [X] three"}, {"community": "Astronaut"},
                         {"as_of": "2026-10-05"}, {"industry": "Law"},
