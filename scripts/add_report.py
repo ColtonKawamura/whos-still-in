@@ -3,7 +3,8 @@
 
 The issue body (GitHub issue-form markdown) is read from a file or "-" for stdin, e.g.
     gh issue view 12 --json body -q .body | python scripts/add_report.py -
-Use --subtract with a previously accepted body to remove that response before adding an update.
+Use --subtract with a previously accepted body to remove that response, or --previous-json with
+the previously accepted row to replace it atomically. --json-out writes the accepted row as JSON.
 Only aggregate counts are written; no usernames or issue identifiers are stored.
 """
 
@@ -11,6 +12,7 @@ import argparse
 import csv
 import importlib.util
 import io
+import json
 import re
 import sys
 import tempfile
@@ -89,18 +91,18 @@ def report_row(body, review_date):
     }
 
 
-def apply(csv_path, report, delta, review_date):
-    with csv_path.open(encoding="utf-8", newline="") as handle:
-        reader = csv.DictReader(handle)
-        fields, rows = reader.fieldnames, list(reader)
+ROW_KEYS = ["year", "kind", "service", "status", "rank", "community", "industry"]
+
+
+def update_rows(rows, report, delta, review_date):
+    """Add delta respondents to the report's aggregate row in-place; return the new count."""
     if not any(row["year"] == report["year"] and row["kind"] == "class" for row in rows):
         raise ValueError(f"class {report['year']} has no cited model rows yet")
-    keys = ["year", "kind", "service", "status", "rank", "community", "industry"]
-    match = next((row for row in rows if all(row[key] == report[key] for key in keys)), None)
+    match = next((row for row in rows if all(row[key] == report[key] for key in ROW_KEYS)), None)
     if match is None:
         if delta < 0:
             raise ValueError("no matching aggregate row to subtract")
-        match = {field: "" for field in fields} | report | {"count": "0"}
+        match = {field: "" for field in rows[0]} | report | {"count": "0"}
         rows.append(match)
     count = int(match["count"]) + delta
     if count < 0:
@@ -108,6 +110,17 @@ def apply(csv_path, report, delta, review_date):
     match["count"], match["as_of"] = str(count), review_date.isoformat()
     if count == 0:
         rows.remove(match)
+    return count
+
+
+def apply_changes(csv_path, changes, review_date):
+    """Apply [(report, delta), ...] atomically, validating the whole CSV before writing."""
+    with csv_path.open(encoding="utf-8", newline="") as handle:
+        reader = csv.DictReader(handle)
+        fields, rows = reader.fieldnames, list(reader)
+    count = None
+    for report, delta in changes:
+        count = update_rows(rows, report, delta, review_date)
     output = io.StringIO()
     writer = csv.DictWriter(output, fieldnames=fields, lineterminator="\n")
     writer.writeheader()
@@ -121,20 +134,51 @@ def apply(csv_path, report, delta, review_date):
     return count
 
 
+def apply(csv_path, report, delta, review_date):
+    return apply_changes(csv_path, [(report, delta)], review_date)
+
+
+def previous_row(text):
+    """Parse a previously accepted row (JSON) and check it only uses allowed values."""
+    row = json.loads(text)
+    if not isinstance(row, dict) or sorted(row) != sorted(ROW_KEYS) or row["kind"] != "voluntary":
+        raise ValueError("previous accepted report is malformed")
+    if not all(isinstance(value, str) for value in row.values()) or not row["year"].isdigit():
+        raise ValueError("previous accepted report is malformed")
+    if row["status"] not in STATUSES.values() or row["service"] not in SERVICES.values():
+        raise ValueError("previous accepted report is malformed")
+    builder.parse_communities(row["community"])
+    builder.build_voluntary([dict(row, count="1", as_of="2000-01-01")])
+    return row
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("issue_body", help="file containing the issue body, or - for stdin")
     parser.add_argument("--subtract", action="store_true", help="remove a previously accepted response")
     parser.add_argument("--as-of", type=date.fromisoformat, default=date.today(),
                         help="aggregate review date (default: today)")
+    parser.add_argument("--previous-json", help="previously accepted row (JSON) to replace with this report")
+    parser.add_argument("--json-out", type=Path, help="write the accepted row as JSON to this file")
     parser.add_argument("--csv", type=Path, default=ROOT / "data" / "cohorts.csv")
     args = parser.parse_args()
     body = sys.stdin.read() if args.issue_body == "-" else Path(args.issue_body).read_text(encoding="utf-8")
     try:
         report = report_row(body, args.as_of)
-        count = apply(args.csv, report, -1 if args.subtract else 1, args.as_of)
-    except ValueError as error:
+        changes = [(report, -1 if args.subtract else 1)]
+        if args.previous_json:
+            if args.subtract:
+                raise ValueError("--previous-json cannot be combined with --subtract")
+            previous = previous_row(args.previous_json)
+            changes = [] if previous == report else [(previous, -1)] + changes
+        count = apply_changes(args.csv, changes, args.as_of) if changes else None
+    except (ValueError, json.JSONDecodeError) as error:
         sys.exit(f"Not applied: {error}")
+    if args.json_out:
+        args.json_out.write_text(json.dumps(report, sort_keys=True) + "\n", encoding="utf-8")
+    if count is None:
+        print(f"Unchanged: {report} matches the previously accepted report")
+        return
     print(f"{'Subtracted' if args.subtract else 'Added'} {report} -> aggregate count {count}")
     print("Next: python scripts/build_data.py && python -m unittest discover -s tests -v")
 

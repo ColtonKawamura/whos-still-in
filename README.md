@@ -70,26 +70,40 @@ The site links to `.github/ISSUE_TEMPLATE/voluntary-report.yml`, a GitHub issue 
 
 Participation is optional. A GitHub account is required, and usernames and submissions are public—not an anonymous survey. The form requires consent and prohibits names, contact details, units, duty stations, deployment information, and documents. Users should update their existing issue rather than submit duplicates. Do not upload personnel records or someone else's information.
 
-### Maintainer update process
+### Automated pull requests (approve to publish)
 
-Issues are **not** ingested automatically. Contributions reach the site only when a maintainer reviews the issue and commits updated aggregate rows. `scripts/add_report.py` turns one issue-form body into the matching aggregate CSV change:
+Each voluntary report becomes a pull request automatically; **approving that PR publishes it**.
+
+1. A user submits the issue form, which applies the `voluntary-report` label. `.github/workflows/voluntary-report-pr.yml` runs `scripts/voluntary_pr.sh sync`, which parses the issue with `scripts/add_report.py`, updates the matching aggregate row in `data/cohorts.csv`, rebuilds the JSON, runs the tests, and opens (or updates) a PR from branch `voluntary-report/issue-<n>`. The PR shows the parsed answers in a table.
+2. If the answers are invalid (missing consent, out-of-list value, future date, still-in answer with an out-only field, class without model rows, …) the bot comments on the issue instead and closes any existing PR for it. Editing the issue re-runs the check.
+3. Review the PR and the issue (consent, plausibility, obvious duplicates), then **approve** the PR. `.github/workflows/voluntary-report-merge.yml` confirms that the reviewer has write access, squash-merges exactly the approved commit, dispatches the Pages deploy, comments on the issue with the counted answers, labels it `counted`, closes it, and rebuilds every other open report PR on the new `main` so they still merge cleanly. Merging a report PR by hand also records it, and the normal push-to-`main` deploy runs. To reject a report, close the PR.
+4. **Updates:** when a counted issue is edited, the bot opens an *Update* PR that subtracts the previously counted answers (read only from its own `github-actions[bot]` comment) and adds the new ones; if the answers are unchanged, no PR is opened. A second issue from an account that already has a `counted` report gets a comment asking the user to edit the original instead, and it is not counted.
+
+No usernames or issue numbers are written to the CSV or JSON. Issue text is untrusted: the workflows check out scripts from `main`, read the body into a file, and only accept allow-listed values; it is never interpolated into a shell command.
+
+**One-time setup:** in **Settings → Actions → General → Workflow permissions**, check **Allow GitHub Actions to create and approve pull requests** (the PRs are opened by `github-actions[bot]`, so you can approve them yourself). The workflows create the `voluntary-report` and `counted` labels the first time they run; create `voluntary-report` yourself before the first submission so the form can apply it. If branch protection on `main` requires status checks or blocks `github-actions[bot]` from merging, approval will not merge automatically; merge the approved PR by hand instead. PRs opened and branches pushed with `GITHUB_TOKEN` do not trigger other workflows, which is why the sync step runs the tests itself. To re-process an issue manually, run **Actions → Voluntary report pull request → Run workflow** with its number.
+
+### Manual update process
+
+`scripts/add_report.py` can also be run locally to turn one issue-form body into the matching aggregate CSV change:
 
 ```sh
 # Requires the GitHub CLI (or paste the issue body into a file and pass its path).
 gh issue view 12 --json body -q .body | python scripts/add_report.py -
-# If that account previously had an accepted report, first remove the old answer:
-gh issue view 12 --json body -q .body > /tmp/old.md   # edit to the previously accepted text
+# Replace previously counted answers in one step (row JSON from the bot's issue comment):
+gh issue view 12 --json body -q .body | python scripts/add_report.py - --previous-json '{"year": "2012", ...}'
+# Or remove an old answer from a saved issue body:
 python scripts/add_report.py --subtract /tmp/old.md
 python scripts/build_data.py && python -m unittest discover -s tests -v
 git commit -am "Add voluntary report aggregate" && git push   # or open a PR; merging to main deploys
 ```
 
-The helper checks consent boxes, status/service, rank/industry consistency with status, the community list, a non-future status date, and that the class already has model rows; it then increments (or with `--subtract`, decrements and removes empty) the matching aggregate row, sets its `as_of` to the review date (`--as-of`, default today), and validates the whole CSV before writing. It never writes usernames or issue numbers. Close or label the issue (for example `counted`) after committing so it is not counted twice. The manual steps it automates are:
+The helper checks consent boxes, status/service, rank/industry consistency with status, the community list, a non-future status date, and that the class already has model rows; it then increments (or with `--subtract`, decrements and removes empty) the matching aggregate row, sets its `as_of` to the review date (`--as-of`, default today), and validates the whole CSV before writing. It never writes usernames or issue numbers. The rules it applies are:
 
 1. Review a voluntary issue for consent, supported class year, plausible status/pay grade, and a valid non-future date. Ask the submitter to correct invalid or contradictory answers; do not count them yet. Reports remain **unverified self-reports** even after review.
 2. Check that account's previous accepted submissions/updates in the issue history. Count only the latest accepted response once. When status, service, or grade changes, decrement its previous aggregate before incrementing the new one. Do not add GitHub usernames or issue identifiers to the CSV.
 3. Add or adjust the applicable `voluntary` aggregate row in `data/cohorts.csv`, using the aggregate review date in `as_of`. Use `Not disclosed` for respondents who select no community, for still-in respondents who omit their grade, and use `Not disclosed` for out respondents who omit their highest grade or industry (the form's “Not disclosed / not applicable” or a blank optional answer). Current/last service in these rows is separate from original commissioning service in model rows.
-4. Rebuild and test, then commit the CSV and derived JSON. A push to `main` deploys the update. No issue is automatically ingested; no privileged workflow runs untrusted issue content. Unsupported classes need cited class/service/model rows before reports can be published.
+4. Rebuild and test, then commit the CSV and derived JSON. A push to `main` deploys the update. Unsupported classes need cited class/service/model rows before reports can be published.
 
 The rank denominator is **all accepted still-in respondents**, including `Not disclosed`/`Other`, not commissioned graduates, modeled still-in counts, or all survey respondents. For example, two O-4s, one O-5, and one undisclosed rank yield 50%, 25%, and 25%; out reports do not enter that calculation. Rounding may prevent exactly 100%. Zero responses show no percentages, not fabricated zero-percent rank estimates.
 

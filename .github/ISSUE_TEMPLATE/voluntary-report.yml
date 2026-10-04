@@ -1,6 +1,7 @@
 name: Voluntary serving-status report
 description: Report or update your own USNA class, serving status, pay grade, warfare community, and (optionally) highest grade and industry if out.
 title: "[Voluntary report] Class of "
+labels: ["voluntary-report"]
 body:
   - type: markdown
     attributes:
@@ -8,7 +9,7 @@ body:
         **Optional, public self-report — not an official personnel record.**
         GitHub requires an account; your username, issue, and answers will be public.
         Do not include names, contact details, units, duty stations, deployment information, or documents.
-        Maintainers review reports manually and publish only aggregate counts in the CSV.
+        A bot checks your answers and opens a pull request that adds them to aggregate counts; a maintainer reviews and approves it before anything is published. Only aggregate counts are published in the CSV.
         Reports are not anonymous, instantly published, or independently verified. Please update your existing issue rather than creating duplicate reports.
   - type: input
     id: class-year

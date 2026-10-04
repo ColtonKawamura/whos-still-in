@@ -162,7 +162,8 @@ class BuildDataTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "cohorts.csv"
             output = Path(directory) / "public"
-            source = (ROOT / "data" / "cohorts.csv").read_text()
+            source = "".join(line for line in (ROOT / "data" / "cohorts.csv").read_text().splitlines(True)
+                             if ",voluntary," not in line)
             report = "2012,voluntary,USN,still_in,O-4,Surface,,2,,2026-10-04,,,\n"
             path.write_text(source + report)
             builder.build(path, output)

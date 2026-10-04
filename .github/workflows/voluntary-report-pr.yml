@@ -1,0 +1,41 @@
+name: Voluntary report pull request
+
+# Turns a voluntary-report issue into a pull request that updates the aggregate CSV and JSON.
+# Issue content is untrusted: it is read with gh into a file and parsed by scripts/add_report.py,
+# never interpolated into a shell command. Scripts always come from main, not from the issue.
+on:
+  issues:
+    types: [opened, edited, reopened, labeled]
+  workflow_dispatch:
+    inputs:
+      issue:
+        description: Issue number to (re)process
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: voluntary-report-${{ github.event.issue.number || inputs.issue }}
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.issue.labels.*.name, 'voluntary-report')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    steps:
+      - uses: actions/checkout@v4.2.2
+        with:
+          ref: main
+      - uses: actions/setup-python@v5.6.0
+        with:
+          python-version: '3.12'
+      - name: Open or update the report pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ github.event.issue.number || inputs.issue }}
+        run: scripts/voluntary_pr.sh sync "$ISSUE"
