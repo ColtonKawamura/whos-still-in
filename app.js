@@ -300,8 +300,17 @@ function render(data) {
   text("as-of", updated);
   document.getElementById("as-of").dateTime = updated;
   renderVoluntary(data);
-  document.getElementById("report-link").href =
-    `https://github.com/ColtonKawamura/whos-still-in/issues/new?template=voluntary-report.yml&title=${encodeURIComponent(`[Voluntary report] Class of ${data.year}`)}`;
+  const reportLink = document.getElementById("report-link");
+  const refreshReportLink = () => {
+    const token = Array.from(crypto.getRandomValues(new Uint32Array(4)),
+      (value) => value.toString(16).padStart(8, "0")).join("");
+    const title = `[Voluntary report] Class of ${data.year} — ${token}`;
+    reportLink.href =
+      `https://github.com/ColtonKawamura/whos-still-in/issues/new?template=voluntary-report.yml&title=${encodeURIComponent(title)}`;
+  };
+  refreshReportLink();
+  reportLink.onclick = refreshReportLink;
+  reportLink.onauxclick = refreshReportLink;
 
   if (chart) {
     chart.destroy();

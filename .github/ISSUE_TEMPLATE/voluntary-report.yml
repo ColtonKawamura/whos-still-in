@@ -11,6 +11,7 @@ body:
         Do not include names, contact details, units, duty stations, deployment information, or documents.
         A bot checks your answers and opens a pull request that adds them to aggregate counts; a maintainer reviews and approves it before anything is published. Only aggregate counts are published in the CSV.
         Reports are not anonymous, instantly published, or independently verified. Please update your existing issue rather than creating duplicate reports.
+        **Do not change the issue title.** The website's report link fills in a unique title for you. If GitHub suggests similar issues, that is not a requirement to rename your report. To add information or change your answers, edit your original issue (even if it is closed), keeping its title unchanged. For a new report, open the form through https://coltonkawamura.github.io/whos-still-in/ to get a unique title.
   - type: input
     id: class-year
     attributes:
