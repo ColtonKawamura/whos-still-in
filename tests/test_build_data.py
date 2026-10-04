@@ -23,6 +23,7 @@ class BuildDataTests(unittest.TestCase):
             "as_of": "2026-10-04",
             "method": "Illustrative assumptions, not observed retention.",
             "confidence": "Low",
+            "coverage_note": "Documented commissions only.",
             "sources": [{"title": "Example source", "url": "https://example.com"}],
         }
 
@@ -33,6 +34,7 @@ class BuildDataTests(unittest.TestCase):
         self.assertEqual(result["estimated_out"], 6)
         self.assertEqual(result["percent_in"], 45.5)
         self.assertEqual(result["percent_in"] + result["percent_out"], 100)
+        self.assertEqual(result["coverage_note"], self.source["coverage_note"])
 
     def test_rejects_invalid_counts_and_rates(self):
         for count, rate in [(-1, 0.5), (1.5, 0.5), (True, 0.5),

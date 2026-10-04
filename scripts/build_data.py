@@ -47,6 +47,7 @@ def build_class(source):
         "as_of": source["as_of"],
         "method": source["method"],
         "confidence": source["confidence"],
+        "coverage_note": source["coverage_note"],
         "sources": source["sources"],
     }
 

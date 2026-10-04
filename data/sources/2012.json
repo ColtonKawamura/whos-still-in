@@ -1,0 +1,59 @@
+{
+  "year": 2012,
+  "commissioned_total": 1077,
+  "by_service": {
+    "USN": {
+      "commissioned": 810,
+      "assumed_retention_rate": 0.4
+    },
+    "USMC": {
+      "commissioned": 267,
+      "assumed_retention_rate": 0.35
+    }
+  },
+  "as_of": "2026-10-04",
+  "confidence": "Low — illustrative model; partial cohort",
+  "coverage_note": "Coverage: 1,077 documented Navy and Marine Corps commissions only, not the entire Class of 2012. Contemporary reporting counted 1,099 graduates. The other 22 graduates' exact commissioning dispositions are unresolved here; other U.S. services are unavailable, not zero. They are excluded from both percentages.",
+  "method": "Illustrative scenario approximately fourteen years after commissioning, not measured cohort retention. Official Navy/DVIDS captions report 810 Navy ensigns and 267 Marine Corps second lieutenants. Apply editorial assumptions of 40% still serving for original Navy commissions and 35% for original Marine commissions: 810 × 0.40 = 324 and 267 × 0.35 = 93.45, rounded half up to 93. This gives 417 modeled still in and 660 modeled out of the 1,077 documented commissions (38.7% / 61.3%). These assumptions are not published USNA or service-wide fourteen-year retention rates; no cohort matching has been performed. GAO's officer-community retention study and DoD continuation statistics provide background only, not calibration. Other commissioning services, reserves, and later transfers have not been independently counted. The model reference date does not establish anyone's status on that date.",
+  "sources": [
+    {
+      "title": "U.S. Navy / DVIDS: US Naval Academy Class of 2012 (810 ensigns, 267 Marine second lieutenants)",
+      "url": "https://www.dvidshub.net/image/591206/us-naval-academy-class-2012"
+    },
+    {
+      "title": "U.S. Navy / DVIDS: second Class of 2012 commissioning caption",
+      "url": "https://www.dvidshub.net/image/591210/us-naval-academy-class-2012"
+    },
+    {
+      "title": "CBS Baltimore: Class of 2012 graduation reporting (1,099 graduates, not U.S. commissions)",
+      "url": "https://www.cbsnews.com/baltimore/news/about-1000-to-graduate-from-naval-academy/"
+    },
+    {
+      "title": "Eye On Annapolis: contemporary graduation report (mentions international and other-service graduates)",
+      "url": "https://www.eyeonannapolis.net/2012/05/usna-class-of-2012-graduation/"
+    },
+    {
+      "title": "GAO-21-168: Navy officer-community retention research — context, not this cohort's rate",
+      "url": "https://www.gao.gov/products/gao-21-168"
+    },
+    {
+      "title": "DoD Office of the Actuary: military retirement and continuation reports — cross-check framework only",
+      "url": "https://actuary.defense.gov/Reports/Military-Retirement/"
+    },
+    {
+      "title": "MyNavy HR: NAVADMIN 2025 archive — public promotion evidence for future matching",
+      "url": "https://www.mynavyhr.navy.mil/References/Messages/NAVADMIN-2025/"
+    },
+    {
+      "title": "Marine Corps: October 2025 officer promotions and projected November promotions — future matching source",
+      "url": "https://www.marines.mil/News/Messages/Messages-Display/Article/4315022/officer-promotions-for-october-2025-and-projected-officer-promotions-for-novemb/"
+    }
+  ],
+  "documentation": {
+    "denominator": "1077 is the documented Navy/Marine commissioning subtotal, NOT a verified total of every U.S. commission. Do not allocate the 22 residual graduates to other services. Local reporting mentions 14 foreign officers, but the complete breakdown has not been established.",
+    "verification": "Commissioning caption numbers and contemporary graduation reporting were obtained through public search excerpts. Direct full-text retrieval was blocked by DNS failures during implementation. Recheck the linked primary sources before treating the full breakdown as independently verified.",
+    "assumption_rationale": "40% USN and 35% USMC are deliberately simple editorial mid-career scenarios. They allow for substantial departures after the minimum obligation while leaving a career-serving minority. The five-point service difference is also an assumption, not a measured finding. GAO's ten-year officer-community results describe a different population and outcome and cannot validate these rates. No applicable fourteen-year USNA 2012 rate was verified.",
+    "uncertainty": "The estimate is not statistically fitted and has no statistical confidence interval. For sensitivity, choosing 30% or 50% across both services would yield approximately 30% or 50% still in; those alternatives are scenarios, not evidence-based bounds. Public promotion records do not resolve current active/reserve coverage or later transfers.",
+    "future_pipeline": "Replace assumptions only after documenting applicable longitudinal retention statistics or aggregate matches of verified USNA commissioning-year membership to promotion evidence, with deduplication, component coverage, and dates. Do not publish individual rosters or infer separation from a missing promotion entry."
+  }
+}

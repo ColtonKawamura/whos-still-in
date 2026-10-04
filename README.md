@@ -26,9 +26,17 @@ Open http://localhost:8000/ rather than opening the HTML as a file, since the ap
 
 ## Data and methodology
 
-`data/sources/2012.json` is the documented input: commissioning totals, explicit per-service retention assumptions, model date, limitations, and source URLs. `scripts/build_data.py` generates `data/2012.json` and `data/index.json` deterministically. It rejects invalid rates, negative counts, invalid dates/years, duplicate years, and totals that do not match the service breakdown.
+`data/sources/2012.json` is the documented input: commissioning totals, explicit per-service retention assumptions, model date, coverage, limitations, and source URLs. `scripts/build_data.py` generates `data/2012.json` and `data/index.json` deterministically. It rejects invalid rates, negative counts, invalid dates/years, duplicate years, and totals that do not match the service breakdown.
 
-**The initial 2012 result is a low-confidence illustrative model, not an observed retention rate.** Public commissioning counts can be verified; a current, complete list of serving graduates cannot. The service-specific assumptions are editorial modeling choices, not published USNA retention statistics. The model date is not a verified personnel-status date. Do not use this site to claim that a specific percentage of the class is known to be serving.
+### Class of 2012 starting point
+
+- Official [Navy/DVIDS captions](https://www.dvidshub.net/image/591206/us-naval-academy-class-2012) report **810 Navy ensigns + 267 Marine Corps second lieutenants = 1,077 documented commissions**.
+- [Contemporary CBS reporting](https://www.cbsnews.com/baltimore/news/about-1000-to-graduate-from-naval-academy/) counted **1,099 graduates**. The **22 remaining graduates** are not automatically other U.S. commissions. Local reporting mentions international and other-service graduates, but the full exact breakdown is unresolved here.
+- Therefore `commissioned_total` for this input is the **documented subtotal modeled**, not the verified total of all U.S. commissions or the whole graduating class. Other services are **unavailable, not zero**, and are excluded from the percentages. The UI prominently discloses this partial coverage.
+- Assumed retention of **40% USN / 35% USMC** produces **417 modeled still in / 660 modeled out (38.7% / 61.3%)**. These are editorial scenarios, not rates extracted from the linked studies. Changing both assumptions to 30% or 50% would change the result accordingly; these are not statistical uncertainty bounds.
+- Commissioning evidence was available through public search excerpts; direct full-text retrieval failed during implementation. The source input records that verification limitation for follow-up.
+
+**The initial 2012 result is a low-confidence illustrative model, not an observed retention rate.** Public commissioning counts can be documented; a current, complete list of serving graduates has not been established. The service-specific assumptions are editorial modeling choices, not published USNA retention statistics. The model date is not a verified personnel-status date. Do not use this site to claim that a specific percentage of the class is known to be serving.
 
 ### Best available public-source approach
 
@@ -43,7 +51,7 @@ The website's expandable **How does this work?** section explains these limitati
 ## Add or update a class
 
 1. Copy `data/sources/2012.json` to `data/sources/<year>.json`.
-2. Change `year`, the commissioned total and service counts, model `as_of` date, explicitly justified `assumed_retention_rate` values (0–1), `method`, `confidence`, and cited `sources`. Include exclusions, provenance, and limitations in the input documentation. The filename alone does not set the year.
+2. Change `year`, the commissioned total and service counts, model `as_of` date, explicitly justified `assumed_retention_rate` values (0–1), `method`, `confidence`, `coverage_note`, and cited `sources`. Include exclusions, provenance, and limitations in the input documentation. The filename alone does not set the year.
 3. Run `python scripts/build_data.py` and `python -m unittest discover -s tests -v`.
 4. Commit the source file and generated class JSON/index. The dropdown reads `data/index.json`; no HTML/JavaScript change is needed. Class of 2012 is selected by default when available.
 

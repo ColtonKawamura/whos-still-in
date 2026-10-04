@@ -37,6 +37,7 @@
       <aside class="estimate-notice">
         <strong>A modeled estimate, not a verified headcount.</strong>
         <p>Commissioning totals are sourced; retention rates are explicit assumptions, not measured class outcomes. “Out” is the model's remainder, not a verified count of separations or retirements.</p>
+        <p id="coverage-note"></p>
       </aside>
       <div class="overview">
         <article class="card chart-card" aria-label="Serving status estimate">
@@ -49,7 +50,7 @@
         <article class="card summary-card">
           <div class="stat"><span>Estimated still in</span><strong id="percent-in"></strong><span id="count-in"></span></div>
           <div class="stat out"><span>Estimated separated / retired</span><strong id="percent-out"></strong><span id="count-out"></span></div>
-          <p><strong id="total"></strong> commissioned into U.S. services</p>
+          <p><strong id="total"></strong> documented commissions in the modeled denominator</p>
           <p class="muted">Model as of <time id="as-of"></time> · not a live personnel count</p>
         </article>
       </div>
@@ -74,7 +75,7 @@
     <details class="card">
       <summary>How does this work?</summary>
       <div class="explanation">
-        <p>There is no single public API that gives current serving status for a USNA class. We start with public graduation and commissioning releases, excluding international graduates and graduates who did not commission into U.S. services.</p>
+        <p>There is no single public API that gives current serving status for a USNA class. We start with public graduation and commissioning releases. For 2012, only the documented Navy/Marine commissioning subtotal is modeled; the other 22 graduates' commissioning dispositions are unresolved, not assumed to be U.S. commissions or zero other-service commissions. International graduates and non-commissioning graduates should be excluded when a full breakdown is established.</p>
         <p>The intended evidence pipeline uses Navy NAVADMIN and Marine Corps MARADMIN officer promotion results (O-4/LCDR/major and above), matched to a verified commissioning year and academy cohort. A recent promotion is evidence of service at that time, but lists include non-USNA officers, omit non-selectees and some components, and cannot by themselves measure everyone still serving. A missing name does not mean someone left.</p>
         <p><strong>The initial 2012 model has not performed those individual matches.</strong> Instead, it applies documented, illustrative service-specific retention assumptions to the verified commissioning counts. Broad DoD officer continuation statistics are context only: annual continuation, retention at five years, and retention at fourteen years are different measures. We do not present one as another or claim these assumptions are published cohort rates.</p>
         <p>“Still in” is intended to include active duty and reserve service in any U.S. service; public promotion evidence does not yet establish that coverage. The residual “out” category can include other losses, including deaths, and cannot distinguish separation from retirement. Estimates are rounded by service, then summed. The as-of date is the model's reference date, not a personnel-record update.</p>

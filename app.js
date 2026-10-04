@@ -21,6 +21,7 @@ function text(id, value) {
 function render(data) {
   text("class-title", `Class of ${data.year}`);
   text("confidence", data.confidence);
+  text("coverage-note", data.coverage_note);
   text("percent-in", `${data.percent_in.toFixed(1)}%`);
   text("percent-out", `${data.percent_out.toFixed(1)}%`);
   text("count-in", `${number.format(data.estimated_still_in)} classmates (estimated)`);
@@ -69,9 +70,10 @@ function render(data) {
     chart = undefined;
   }
   const canvas = document.getElementById("status-chart");
+  const chartWrap = canvas.parentElement;
   const note = document.getElementById("chart-note");
   canvas.setAttribute("aria-label", `Class of ${data.year}: estimated ${data.percent_in}% still in and ${data.percent_out}% out.`);
-  canvas.hidden = false;
+  chartWrap.hidden = false;
   note.hidden = true;
   try {
     if (typeof Chart === "undefined") throw new Error("Chart library unavailable");
@@ -102,7 +104,7 @@ function render(data) {
       },
     });
   } catch {
-    canvas.hidden = true;
+    chartWrap.hidden = true;
     note.hidden = false;
   }
 }
