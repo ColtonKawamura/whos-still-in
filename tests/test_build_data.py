@@ -95,7 +95,8 @@ class BuildDataTests(unittest.TestCase):
             {"service": "USN", "status": "still_in", "rank": "O-4", "count": "2", "as_of": "2026-10-04"},
             {"service": "USMC", "status": "still_in", "rank": "O-5", "count": "1", "as_of": "2026-10-04"},
             {"service": "USN", "status": "still_in", "rank": "Not disclosed", "count": "1", "as_of": "2026-10-04"},
-            {"service": "USN", "status": "out", "rank": "", "count": "3", "as_of": "2026-10-04"},
+            {"service": "USN", "status": "out", "rank": "O-3", "industry": "Tech / software",
+             "count": "3", "as_of": "2026-10-04"},
         ]
         result = builder.build_voluntary(rows)
         ranks = {entry["rank"]: entry for entry in result["rank_distribution"]}
@@ -109,22 +110,50 @@ class BuildDataTests(unittest.TestCase):
         result = builder.build_voluntary([])
         self.assertEqual(result["reported_still_in"], 0)
         self.assertIsNone(result["as_of"])
-        self.assertTrue(all(entry["percent"] is None for entry in result["rank_distribution"]))
+        for key in ["rank_distribution", "highest_rank_distribution", "industry_distribution"]:
+            self.assertTrue(all(entry["percent"] is None for entry in result[key]))
+
+    def test_out_highest_rank_and_industry_use_out_respondents_only(self):
+        rows = [
+            {"service": "USN", "status": "still_in", "rank": "O-4", "industry": "", "count": "5", "as_of": "2026-10-04"},
+            {"service": "USN", "status": "out", "rank": "O-3", "industry": "Tech / software", "count": "2", "as_of": "2026-10-04"},
+            {"service": "USMC", "status": "out", "rank": "O-4", "industry": "Law", "count": "1", "as_of": "2026-10-04"},
+            {"service": "USN", "status": "out", "rank": "Not disclosed", "industry": "Not disclosed", "count": "1", "as_of": "2026-10-04"},
+        ]
+        result = builder.build_voluntary(rows)
+        highest = {entry["rank"]: entry for entry in result["highest_rank_distribution"]}
+        industries = {entry["industry"]: entry for entry in result["industry_distribution"]}
+        self.assertEqual(result["reported_out"], 4)
+        self.assertEqual(highest["O-3"]["percent"], 50)
+        self.assertEqual(highest["O-4"]["percent"], 25)
+        self.assertEqual(highest["Not disclosed"]["percent"], 25)
+        self.assertEqual(industries["Tech / software"]["percent"], 50)
+        self.assertEqual(industries["Law"]["percent"], 25)
+        current = {entry["rank"]: entry for entry in result["rank_distribution"]}
+        self.assertEqual(current["O-4"]["percent"], 100)
+        self.assertEqual(current["O-3"]["count"], 0)
 
     def test_rejects_invalid_voluntary_rows(self):
-        row = {"service": "USN", "status": "still_in", "rank": "O-4", "count": "1", "as_of": "2026-10-04"}
+        row = {"service": "USN", "status": "still_in", "rank": "O-4", "industry": "",
+               "count": "1", "as_of": "2026-10-04"}
         for key, value in [("count", "-1"), ("count", "1.5"), ("rank", "O-99"),
-                           ("status", "out"), ("service", ""),
+                           ("status", "out"), ("service", ""), ("industry", "Law"),
                            ("as_of", (date.today() + timedelta(days=1)).isoformat())]:
             with self.subTest(key=key):
                 with self.assertRaises(ValueError):
                     builder.build_voluntary([dict(row, **{key: value})])
+        out_row = dict(row, status="out", industry="Law")
+        builder.build_voluntary([out_row])
+        for key, value in [("industry", ""), ("industry", "Astronaut"), ("rank", ""), ("rank", "O-99")]:
+            with self.subTest(out_key=key, value=value):
+                with self.assertRaises(ValueError):
+                    builder.build_voluntary([dict(out_row, **{key: value})])
 
     def test_csv_rejects_duplicate_service_rows(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "cohorts.csv"
             source = (ROOT / "data" / "cohorts.csv").read_text()
-            source += "2012,service,USN,,,810,0.40,,,,\n"
+            source += "2012,service,USN,,,,810,0.40,,,,\n"
             path.write_text(source)
             with self.assertRaises(ValueError):
                 builder.read_sources(path)
@@ -134,7 +163,7 @@ class BuildDataTests(unittest.TestCase):
             path = Path(directory) / "cohorts.csv"
             output = Path(directory) / "public"
             source = (ROOT / "data" / "cohorts.csv").read_text()
-            report = "2012,voluntary,USN,still_in,O-4,2,,2026-10-04,,,\n"
+            report = "2012,voluntary,USN,still_in,O-4,,2,,2026-10-04,,,\n"
             path.write_text(source + report)
             builder.build(path, output)
             result = json.loads((output / "2012.json").read_text())
@@ -143,6 +172,14 @@ class BuildDataTests(unittest.TestCase):
             rank = next(entry for entry in result["voluntary"]["rank_distribution"]
                         if entry["rank"] == "O-4")
             self.assertEqual(rank["percent"], 100)
+            out_report = '2012,voluntary,USMC,out,O-3,"Construction / trades / real estate",1,,2026-10-04,,,\n'
+            path.write_text(source + report + out_report)
+            builder.build(path, output)
+            result = json.loads((output / "2012.json").read_text())
+            self.assertEqual(result["voluntary"]["reported_out"], 1)
+            industry = next(entry for entry in result["voluntary"]["industry_distribution"]
+                            if entry["industry"] == "Construction / trades / real estate")
+            self.assertEqual(industry["percent"], 100)
             path.write_text(source + report + report)
             with self.assertRaises(ValueError):
                 builder.read_sources(path)
