@@ -63,8 +63,8 @@
   ],
   "voluntary": {
     "reported_still_in": 0,
-    "reported_out": 0,
-    "as_of": null,
+    "reported_out": 1,
+    "as_of": "2026-10-04",
     "rank_distribution": [
       {
         "rank": "O-1",
@@ -156,199 +156,199 @@
       {
         "rank": "O-1",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "rank": "O-2",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "rank": "O-3",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "rank": "O-4",
-        "count": 0,
-        "percent": null
+        "count": 1,
+        "percent": 100.0
       },
       {
         "rank": "O-5",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "rank": "O-6",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "rank": "O-7",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "rank": "O-8",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "rank": "O-9",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "rank": "O-10",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "rank": "W-1",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "rank": "W-2",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "rank": "W-3",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "rank": "W-4",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "rank": "W-5",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "rank": "Other",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "rank": "Not disclosed",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       }
     ],
     "industry_distribution": [
       {
         "industry": "Self-employed / entrepreneur",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "industry": "Tech / software",
-        "count": 0,
-        "percent": null
+        "count": 1,
+        "percent": 100.0
       },
       {
         "industry": "Law",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "industry": "Civil service / government",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "industry": "Defense / aerospace / government contracting",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "industry": "Construction / trades / real estate",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "industry": "Engineering / manufacturing",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "industry": "Finance / banking / insurance",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "industry": "Consulting / business services",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "industry": "Healthcare / medicine",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "industry": "Education / academia",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "industry": "Energy / utilities",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "industry": "Transportation / aviation / maritime / logistics",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "industry": "Sales / marketing / retail",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "industry": "Media / entertainment / arts",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "industry": "Nonprofit / ministry",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "industry": "Politics / public policy",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "industry": "Law enforcement / first responder",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "industry": "Student / graduate school",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "industry": "Not working / retired / caregiving",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "industry": "Other",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "industry": "Not disclosed",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       }
     ],
     "reported_multiple_communities": 0,
@@ -356,169 +356,180 @@
       {
         "community": "Surface",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "community": "Submarine",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "community": "Aviation",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "community": "Special Warfare (SEAL)",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "community": "Special Operations (EOD)",
-        "count": 0,
-        "percent": null
+        "count": 1,
+        "percent": 100.0
       },
       {
         "community": "Nuclear Power (Naval Reactors / Instructor)",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "community": "Intelligence",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "community": "Cryptologic Warfare",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "community": "Information Professional",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "community": "Oceanography (METOC)",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "community": "Maritime Space",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "community": "Foreign Area Officer",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "community": "Engineering Duty",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "community": "Aerospace Engineering Duty",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "community": "Aviation Maintenance Duty",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "community": "Human Resources",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "community": "Public Affairs",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "community": "Medical",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "community": "Supply",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "community": "Civil Engineer Corps",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "community": "JAG",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "community": "Chaplain",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "community": "Infantry",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "community": "Artillery",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "community": "Armor / Assault Amphibian",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "community": "Combat Engineer",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "community": "Logistics",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "community": "Communications",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "community": "Military Police",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "community": "Air Command and Control",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "community": "Other service (Army / Air Force / Space Force / Coast Guard)",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "community": "Other",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       },
       {
         "community": "Not disclosed",
         "count": 0,
-        "percent": null
+        "percent": 0.0
       }
     ],
-    "responses": []
+    "responses": [
+      {
+        "status": "out",
+        "service": "USN",
+        "rank": "O-4",
+        "communities": [
+          "Special Operations (EOD)"
+        ],
+        "industry": "Tech / software",
+        "count": 1
+      }
+    ]
   }
 }
