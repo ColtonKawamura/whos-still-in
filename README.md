@@ -83,6 +83,8 @@ No usernames or issue numbers are written to the CSV or JSON. Issue text is untr
 
 **One-time setup:** in **Settings → Actions → General → Workflow permissions**, check **Allow GitHub Actions to create and approve pull requests** (the PRs are opened by `github-actions[bot]`, so you can approve them yourself). The workflows create the `voluntary-report` and `counted` labels the first time they run; create `voluntary-report` yourself before the first submission so the form can apply it. If branch protection on `main` requires status checks or blocks `github-actions[bot]` from merging, approval will not merge automatically; merge the approved PR by hand instead. PRs opened and branches pushed with `GITHUB_TOKEN` do not trigger other workflows, which is why the sync step runs the tests itself. To re-process an issue manually, run **Actions → Voluntary report pull request → Run workflow** with its number.
 
+If GitHub denies PR creation because that setting is disabled, sync saves the validated branch, emits a workflow warning, and posts a prefilled **open the prepared pull request** link on the issue (updating the same notice on later runs). The report is **not counted** until the PR is reviewed and merged. A maintainer can use that link to create the PR manually, or enable the setting and re-process the issue. If an organization policy locks the setting, an organization administrator must enable it. Other PR-creation errors still fail the workflow.
+
 ### Manual update process
 
 `scripts/add_report.py` can also be run locally to turn one issue-form body into the matching aggregate CSV change:

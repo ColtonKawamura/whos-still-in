@@ -169,9 +169,48 @@ PY
   pr="$(open_pr_for "$branch")"
   if [[ -n "$pr" ]]; then
     gh pr edit "$pr" --repo "$GITHUB_REPOSITORY" --title "$title" --body-file "$WORK/pr.md" >/dev/null
+  elif gh pr create --repo "$GITHUB_REPOSITORY" --base main --head "$branch" \
+      --title "$title" --body-file "$WORK/pr.md" --label "$REPORT_LABEL" \
+      >/dev/null 2>"$WORK/pr-error.txt"; then
+    :
   else
-    gh pr create --repo "$GITHUB_REPOSITORY" --base main --head "$branch" \
-      --title "$title" --body-file "$WORK/pr.md" --label "$REPORT_LABEL" >/dev/null
+    local status=$?
+    cat "$WORK/pr-error.txt" >&2
+    if ! grep -Fq "GitHub Actions is not permitted to create or approve pull requests" "$WORK/pr-error.txt"; then
+      return "$status"
+    fi
+    python3 - "$WORK" "$GITHUB_REPOSITORY" "$branch" "$title" "$REPORT_LABEL" <<'PY'
+import pathlib, sys, urllib.parse
+work, repo, branch, title, label = pathlib.Path(sys.argv[1]), *sys.argv[2:]
+query = urllib.parse.urlencode({
+    "expand": "1", "title": title, "body": (work / "pr.md").read_text(), "labels": label,
+})
+url = f"https://github.com/{repo}/compare/main...{branch}?{query}"
+(work / "comment.md").write_text(
+    "<!-- voluntary-pr-permission-blocked -->\n"
+    "Your report was validated and its aggregate changes were saved on a branch, but "
+    "GitHub Actions is not permitted to create pull requests in this repository. "
+    "**It has not been counted yet.**\n\n"
+    f"A maintainer can [open the prepared pull request]({url}) and review it normally. "
+    "Alternatively, enable **Settings → Actions → General → Workflow permissions → "
+    "Allow GitHub Actions to create and approve pull requests**, then re-run "
+    "**Voluntary report pull request** with this issue number. "
+    "An organization policy may require an organization administrator to enable this setting.\n",
+    encoding="utf-8",
+)
+PY
+    local notice
+    notice="$(gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$issue/comments" \
+      --jq ".[] | select(.user.login == \"$BOT_LOGIN\" and (.body | startswith(\"<!-- voluntary-pr-permission-blocked -->\"))) | .id" | tail -n 1)"
+    if [[ -n "$notice" ]]; then
+      gh api --method PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$notice" \
+        --field "body=@$WORK/comment.md" >/dev/null
+    else
+      comment "$issue" "$WORK/comment.md"
+    fi
+    echo "::warning::Report #$issue is saved but not counted. PR creation is disabled; see the issue for manual recovery."
+    git checkout --quiet --detach FETCH_HEAD
+    return 0
   fi
   echo "Synced #$issue -> $branch ($row)"
   git checkout --quiet --detach FETCH_HEAD
