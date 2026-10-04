@@ -3,26 +3,14 @@
   "commissioned_total": 1077,
   "by_service": {
     "USN": {
-      "commissioned": 810,
-      "estimated_still_in": 324,
-      "estimated_out": 486,
-      "assumed_retention_rate": 0.4
+      "commissioned": 810
     },
     "USMC": {
-      "commissioned": 267,
-      "estimated_still_in": 93,
-      "estimated_out": 174,
-      "assumed_retention_rate": 0.35
+      "commissioned": 267
     }
   },
-  "estimated_still_in": 417,
-  "estimated_out": 660,
-  "percent_in": 38.7,
-  "percent_out": 61.3,
   "as_of": "2026-10-04",
-  "method": "Illustrative scenario approximately fourteen years after commissioning, not measured cohort retention. Navy/DVIDS captions report 810 Navy ensigns and 267 Marine second lieutenants. Editorial retention assumptions of 40% USN and 35% USMC yield 324 and 93 modeled still in after rounding by service: 417 still in and 660 out (38.7% / 61.3%). These are not published cohort retention rates. MyNavy HR NAVADMIN and Marine MARADMIN promotion lists provide public promotion evidence, not a complete USNA cohort census; no individual matching has been performed. Voluntary responses and their ranks are reported separately and never replace the model. Neither source establishes complete reserve/transfer coverage.",
-  "confidence": "Low \u2014 illustrative model; partial cohort",
-  "coverage_note": "Coverage: 1,077 documented Navy and Marine Corps commissions only, not the entire Class of 2012. Contemporary reporting counted 1,099 graduates. The other 22 graduates' exact commissioning dispositions are unresolved here; other U.S. services are unavailable, not zero. They are excluded from both modeled percentages.",
+  "coverage_note": "Coverage: 1,077 documented Navy and Marine Corps commissions only, not the entire Class of 2012. Contemporary reporting counted 1,099 graduates. The other 22 graduates' exact commissioning dispositions are unresolved here; other U.S. services are unavailable, not zero. They are excluded from the denominator.",
   "sources": [
     {
       "title": "U.S. Navy / DVIDS Class of 2012 commissioning caption",
@@ -51,14 +39,6 @@
     {
       "title": "Marine Corps October 2025 officer promotions",
       "url": "https://www.marines.mil/News/Messages/Messages-Display/Article/4315022/officer-promotions-for-october-2025-and-projected-officer-promotions-for-novemb/"
-    },
-    {
-      "title": "GAO-21-168 Navy officer-community retention research",
-      "url": "https://www.gao.gov/products/gao-21-168"
-    },
-    {
-      "title": "DoD Office of the Actuary military retirement reports",
-      "url": "https://actuary.defense.gov/Reports/Military-Retirement/"
     }
   ],
   "voluntary": {
