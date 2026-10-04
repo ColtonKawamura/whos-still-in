@@ -66,9 +66,9 @@ The website's expandable **How does this work?** section explains these limitati
 
 ## Voluntary submissions and rank distribution
 
-The site links to `.github/ISSUE_TEMPLATE/voluntary-report.yml`, a GitHub issue form for a graduate's own class year, current serving status, current/last service, current pay grade, and status date. **Enable Issues in Settings → General → Features**, and merge the form into the default branch so GitHub can display it.
+The site links to `.github/ISSUE_TEMPLATE/voluntary-report.yml`, a GitHub issue form for a graduate's own class year, current serving status, current/last service, current pay grade, and status date. Respondents who are out can optionally add their highest pay grade held and a broad current-industry category (for example self-employed, tech, law, civil service, or construction). Anyone may optionally share a public social / personal website link. **Enable Issues in Settings → General → Features**, and merge the form into the default branch so GitHub can display it.
 
-Participation is optional. A GitHub account is required, and usernames and submissions are public—not an anonymous survey. The form requires consent and prohibits names, contact details, units, duty stations, deployment information, and documents. Users should update their existing issue rather than submit duplicates. Do not upload personnel records or someone else's information.
+Participation is optional. A GitHub account is required, and usernames and submissions are public—not an anonymous survey. The form requires consent and prohibits names, contact details, units, duty stations, deployment information, and documents, apart from the optional public link the respondent chooses to share. Highest pay grade, industry, and links are collected in the public issue only; they are not yet aggregated into the CSV or shown on the site, and links must never be copied into the CSV. Users should update their existing issue rather than submit duplicates. Do not upload personnel records or someone else's information.
 
 ### Maintainer update process
 
