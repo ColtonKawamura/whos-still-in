@@ -4,8 +4,22 @@ const selector = document.getElementById("class-year");
 const statusMessage = document.getElementById("status");
 const results = document.getElementById("results");
 const number = new Intl.NumberFormat("en-US");
-const serviceLabels = { USN: "U.S. Navy", USMC: "U.S. Marine Corps", other: "Other U.S. services" };
+const serviceLabels = {
+  USN: "U.S. Navy", USMC: "U.S. Marine Corps", USA: "U.S. Army", USAF: "U.S. Air Force",
+  USSF: "U.S. Space Force", USCG: "U.S. Coast Guard", other: "Other U.S. services",
+};
+const statusLabels = { still_in: "Still in", out: "Out" };
+const dimensions = {
+  community: { label: "Warfare community", filter: "filter-community" },
+  rank: { label: "Rank (current / highest)", filter: "filter-rank" },
+  status: { label: "Serving status", filter: "filter-status" },
+  service: { label: "Current / last service", filter: "filter-service" },
+  industry: { label: "Industry (out only)" },
+};
+const palette = ["#00205B", "#C5B783", "#4A6FA5", "#74632F", "#8FA9D1", "#2E3B4E", "#E2D6A8", "#5C7C99", "#A38F4D", "#B8C4D6"];
 let chart;
+let exploreChart;
+let explore;
 let requestId = 0;
 
 async function fetchJson(path) {
@@ -55,6 +69,194 @@ function renderVoluntary(data) {
   }
   renderDistribution("highest-rank-rows", reports.highest_rank_distribution, "rank", "out");
   renderDistribution("industry-rows", reports.industry_distribution, "industry", "out");
+  setupExplorer(reports);
+}
+
+function valuesOf(response, dimension) {
+  if (dimension === "community") return response.communities;
+  const value = response[dimension];
+  return value === null || value === undefined ? [] : [value];
+}
+
+function labelFor(dimension, value) {
+  if (dimension === "status") return statusLabels[value] || value;
+  if (dimension === "service") return serviceLabels[value] || value;
+  return value;
+}
+
+function orderedValues(dimension) {
+  const present = new Set(explore.responses.flatMap((response) => valuesOf(response, dimension)));
+  const canonical = explore.order[dimension] || [...present].sort((a, b) =>
+    labelFor(dimension, a).localeCompare(labelFor(dimension, b)));
+  return canonical.filter((value) => present.has(value));
+}
+
+function fillSelect(select, options, value) {
+  select.replaceChildren(...options.map(([optionValue, label]) => new Option(label, optionValue)));
+  select.value = options.some(([optionValue]) => optionValue === value) ? value : options[0][0];
+}
+
+function setupExplorer(reports) {
+  const responses = Array.isArray(reports.responses) ? reports.responses : [];
+  explore = {
+    responses,
+    order: {
+      status: ["still_in", "out"],
+      rank: reports.rank_distribution.map((entry) => entry.rank),
+      community: (reports.community_distribution || []).map((entry) => entry.community),
+      industry: reports.industry_distribution.map((entry) => entry.industry),
+    },
+  };
+  document.getElementById("explore-empty").hidden = responses.length > 0;
+  document.getElementById("explore-body").hidden = responses.length === 0;
+  if (!responses.length) {
+    if (exploreChart) exploreChart.destroy();
+    exploreChart = undefined;
+    return;
+  }
+  for (const [dimension, config] of Object.entries(dimensions)) {
+    if (!config.filter) continue;
+    fillSelect(document.getElementById(config.filter),
+      [["", "All"], ...orderedValues(dimension).map((value) => [value, labelFor(dimension, value)])], "");
+  }
+  const choices = Object.entries(dimensions).map(([key, config]) => [key, config.label]);
+  fillSelect(document.getElementById("breakdown"), choices, "community");
+  fillSelect(document.getElementById("split"), [["", "Nothing (totals only)"], ...choices], "status");
+  updateExplorer();
+}
+
+function filteredResponses() {
+  const filters = Object.entries(dimensions)
+    .filter(([, config]) => config.filter)
+    .map(([dimension, config]) => [dimension, document.getElementById(config.filter).value])
+    .filter(([, value]) => value);
+  return {
+    filters,
+    responses: explore.responses.filter((response) =>
+      filters.every(([dimension, value]) => valuesOf(response, dimension).includes(value))),
+  };
+}
+
+function updateExplorer() {
+  const breakdown = document.getElementById("breakdown").value;
+  let split = document.getElementById("split").value;
+  if (split === breakdown) split = "";
+  const { filters, responses } = filteredResponses();
+  const total = responses.reduce((sum, response) => sum + response.count, 0);
+  const categories = orderedValues(breakdown);
+  const notApplicable = "Not applicable (still in)";
+  const splitOf = (response) => {
+    if (!split) return [""];
+    const values = valuesOf(response, split);
+    return values.length ? values : [notApplicable];
+  };
+  const splitValues = split ? [...orderedValues(split), notApplicable] : [""];
+  const counts = new Map(categories.map((category) => [category, new Map(splitValues.map((value) => [value, 0]))]));
+  let without = 0;
+  for (const response of responses) {
+    const values = valuesOf(response, breakdown);
+    if (!values.length) without += response.count;
+    for (const category of values) {
+      for (const splitValue of splitOf(response)) {
+        const row = counts.get(category);
+        row.set(splitValue, row.get(splitValue) + response.count);
+      }
+    }
+  }
+  const totals = new Map(categories.map((category) => [category,
+    responses.filter((response) => valuesOf(response, breakdown).includes(category))
+      .reduce((sum, response) => sum + response.count, 0)]));
+  const shown = categories.filter((category) => totals.get(category) > 0);
+  const shownSplit = splitValues.filter((value) => shown.some((category) => counts.get(category).get(value) > 0));
+
+  const filterText = filters.length
+    ? ` matching ${filters.map(([dimension, value]) => labelFor(dimension, value)).join(" + ")}`
+    : "";
+  let summary = `${number.format(total)} respondent${total === 1 ? "" : "s"}${filterText}.`;
+  if (breakdown === "industry" && without) summary += ` ${number.format(without)} still-in respondent${without === 1 ? " is" : "s are"} not included in the industry breakdown.`;
+  if (breakdown === "community" || split === "community") summary += " Respondents with multiple communities appear in each one.";
+  text("explore-summary", summary);
+
+  const head = document.createElement("tr");
+  for (const label of [dimensions[breakdown].label, ...(split ? shownSplit.map((value) => labelFor(split, value)) : []), "Respondents", "Share"]) {
+    const cell = document.createElement("th");
+    cell.scope = "col";
+    cell.textContent = label;
+    head.append(cell);
+  }
+  document.getElementById("explore-head").replaceChildren(head);
+  const base = breakdown === "industry" ? total - without : total;
+  document.getElementById("explore-rows").replaceChildren(...shown.map((category) => {
+    const row = document.createElement("tr");
+    const heading = document.createElement("th");
+    heading.scope = "row";
+    heading.textContent = labelFor(breakdown, category);
+    row.append(heading);
+    const values = [
+      ...(split ? shownSplit.map((value) => number.format(counts.get(category).get(value))) : []),
+      number.format(totals.get(category)),
+      base ? `${(100 * totals.get(category) / base).toFixed(1)}%` : "—",
+    ];
+    for (const value of values) {
+      const cell = document.createElement("td");
+      cell.textContent = value;
+      row.append(cell);
+    }
+    return row;
+  }));
+
+  const canvas = document.getElementById("explore-chart");
+  const wrap = canvas.parentElement;
+  const note = document.getElementById("explore-chart-note");
+  wrap.style.height = `${Math.max(180, shown.length * 34 + 80)}px`;
+  canvas.setAttribute("aria-label", `Voluntary respondents by ${dimensions[breakdown].label.toLowerCase()}${split ? `, split by ${dimensions[split].label.toLowerCase()}` : ""}. Figures are also shown in the table below.`);
+  const datasets = shownSplit.map((value) => ({
+    label: split ? labelFor(split, value) : "Respondents",
+    data: shown.map((category) => counts.get(category).get(value)),
+    backgroundColor: palette[splitValues.indexOf(value) % palette.length],
+  }));
+  wrap.hidden = shown.length === 0;
+  note.hidden = true;
+  try {
+    if (typeof Chart === "undefined") throw new Error("Chart library unavailable");
+    if (exploreChart) exploreChart.destroy();
+    exploreChart = new Chart(canvas, {
+      type: "bar",
+      data: { labels: shown.map((category) => labelFor(breakdown, category)), datasets },
+      options: {
+        indexAxis: "y",
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? false : undefined,
+        scales: {
+          x: { stacked: true, beginAtZero: true, ticks: { precision: 0 }, title: { display: true, text: "Respondents" } },
+          y: { stacked: true },
+        },
+        plugins: { legend: { display: Boolean(split) } },
+        onHover: (event, elements) => {
+          event.native.target.style.cursor = elements.length && dimensions[breakdown].filter ? "pointer" : "default";
+        },
+        onClick: (event, elements) => {
+          if (!elements.length) return;
+          drillDown(breakdown, shown[elements[0].index]);
+        },
+      },
+    });
+  } catch {
+    wrap.hidden = true;
+    note.hidden = false;
+  }
+}
+
+function drillDown(dimension, value) {
+  const config = dimensions[dimension];
+  if (!config.filter) return;
+  document.getElementById(config.filter).value = value;
+  const breakdown = document.getElementById("breakdown");
+  const next = Object.keys(dimensions).find((key) =>
+    key !== dimension && (!dimensions[key].filter || !document.getElementById(dimensions[key].filter).value));
+  if (next) breakdown.value = next;
+  updateExplorer();
 }
 
 function render(data) {
@@ -185,6 +387,18 @@ async function initialize() {
     selector.value = index.years.includes(2012) ? "2012" : String(index.years[0]);
     selector.disabled = false;
     selector.addEventListener("change", () => loadClass(selector.value));
+    const controls = document.getElementById("explore-controls");
+    controls.addEventListener("change", () => updateExplorer());
+    controls.addEventListener("submit", (event) => event.preventDefault());
+    controls.addEventListener("reset", (event) => {
+      event.preventDefault();
+      for (const config of Object.values(dimensions)) {
+        if (config.filter) document.getElementById(config.filter).value = "";
+      }
+      document.getElementById("breakdown").value = "community";
+      document.getElementById("split").value = "status";
+      updateExplorer();
+    });
     await loadClass(selector.value);
   } catch {
     selector.replaceChildren(new Option("Classes unavailable", ""));

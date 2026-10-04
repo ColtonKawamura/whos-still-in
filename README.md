@@ -32,7 +32,7 @@ The builder rejects invalid rates, negative counts, invalid dates/years, duplica
 
 ### CSV rows
 
-The CSV header is `year,kind,service,status,rank,industry,count,retention_rate,as_of,title,url,notes`. Each row has one `kind`; unused fields stay blank. Use a CSV-aware editor or Python's standard `csv` module to preserve quoting of commas in notes.
+The CSV header is `year,kind,service,status,rank,community,industry,count,retention_rate,as_of,title,url,notes`. Each row has one `kind`; unused fields stay blank. Use a CSV-aware editor or Python's standard `csv` module to preserve quoting of commas in notes.
 
 | Kind | Required fields and meaning |
 | --- | --- |
@@ -40,9 +40,9 @@ The CSV header is `year,kind,service,status,rank,industry,count,retention_rate,a
 | `service` | One per original commissioning service: `service`, integer commissioned `count`, and explicit `retention_rate` assumption (0–1). |
 | `method` | One per year: `notes` explaining derivation and limitations. |
 | `source` | Public-source `title`, HTTPS `url`, and provenance/role in `notes`; at least one per year. |
-| `voluntary` | One aggregate per current/last service + status + rank + industry: `service`, `status` (`still_in` or `out`), `rank`, `industry` (out only), integer respondent `count`, and aggregate review `as_of` date. |
+| `voluntary` | One aggregate per current/last service + status + rank + community combination + industry: `service`, `status` (`still_in` or `out`), `rank`, `community`, `industry` (out only), integer respondent `count`, and aggregate review `as_of` date. |
 
-For `still_in` voluntary rows, `rank` is the current pay grade—`O-1` through `O-10`, `W-1` through `W-5`, `Other`, or `Not disclosed`—and `industry` must be blank. For `out` rows, `rank` is the **highest pay grade held** while serving (same values) and `industry` is required: one of `Self-employed / entrepreneur`, `Tech / software`, `Law`, `Civil service / government`, `Defense / aerospace / government contracting`, `Construction / trades / real estate`, `Engineering / manufacturing`, `Finance / banking / insurance`, `Consulting / business services`, `Healthcare / medicine`, `Education / academia`, `Energy / utilities`, `Transportation / aviation / maritime / logistics`, `Sales / marketing / retail`, `Media / entertainment / arts`, `Nonprofit / ministry`, `Politics / public policy`, `Law enforcement / first responder`, `Student / graduate school`, `Not working / retired / caregiving`, `Other`, or `Not disclosed`. These lists are defined in `scripts/build_data.py` and must match the issue form's options. No voluntary rows have been seeded with invented responses; the initial respondent panel correctly displays “no reports.”
+For `still_in` voluntary rows, `rank` is the current pay grade—`O-1` through `O-10`, `W-1` through `W-5`, `Other`, or `Not disclosed`—and `industry` must be blank. For `out` rows, `rank` is the **highest pay grade held** while serving (same values) and `industry` is required: one of `Self-employed / entrepreneur`, `Tech / software`, `Law`, `Civil service / government`, `Defense / aerospace / government contracting`, `Construction / trades / real estate`, `Engineering / manufacturing`, `Finance / banking / insurance`, `Consulting / business services`, `Healthcare / medicine`, `Education / academia`, `Energy / utilities`, `Transportation / aviation / maritime / logistics`, `Sales / marketing / retail`, `Media / entertainment / arts`, `Nonprofit / ministry`, `Politics / public policy`, `Law enforcement / first responder`, `Student / graduate school`, `Not working / retired / caregiving`, `Other`, or `Not disclosed`. `community` is required on every voluntary row and lists every warfare community the respondents served in, joined with `; ` (semicolon + space) in the canonical order of `COMMUNITIES` in `scripts/build_data.py`—for example `Surface; Foreign Area Officer` for a lateral transfer. Values are `Surface`, `Submarine`, `Aviation`, `Special Warfare (SEAL)`, `Special Operations (EOD)`, `Nuclear Power (Naval Reactors / Instructor)`, `Intelligence`, `Cryptologic Warfare`, `Information Professional`, `Oceanography (METOC)`, `Maritime Space`, `Foreign Area Officer`, `Engineering Duty`, `Aerospace Engineering Duty`, `Aviation Maintenance Duty`, `Human Resources`, `Public Affairs`, `Medical`, `Supply`, `Civil Engineer Corps`, `JAG`, `Chaplain`, `Infantry`, `Artillery`, `Armor / Assault Amphibian`, `Combat Engineer`, `Logistics`, `Communications`, `Military Police`, `Air Command and Control`, `Other service (Army / Air Force / Space Force / Coast Guard)`, `Other`, or `Not disclosed` (which must stand alone). Community names must not contain commas or semicolons. Suggested `service` keys are `USN`, `USMC`, `USA`, `USAF`, `USSF`, `USCG`, and `Not disclosed`. These lists are defined in `scripts/build_data.py` and must match the issue form's options (a test checks the community list). No voluntary rows have been seeded with invented responses; the initial respondent panel correctly displays “no reports.”
 
 ### Class of 2012 starting point
 
@@ -66,20 +66,36 @@ The website's expandable **How does this work?** section explains these limitati
 
 ## Voluntary submissions and rank distribution
 
-The site links to `.github/ISSUE_TEMPLATE/voluntary-report.yml`, a GitHub issue form for a graduate's own class year, current serving status, current/last service, current pay grade, and status date. Respondents who are out can optionally add their highest pay grade held and a broad current-industry category (for example self-employed, tech, law, civil service, or construction). **Enable Issues in Settings → General → Features**, and merge the form into the default branch so GitHub can display it.
+The site links to `.github/ISSUE_TEMPLATE/voluntary-report.yml`, a GitHub issue form for a graduate's own class year, current serving status, current/last service, current pay grade, warfare community or communities (multi-select, for lateral transfers), and status date. Respondents who are out can optionally add their highest pay grade held and a broad current-industry category (for example self-employed, tech, law, civil service, or construction). **Enable Issues in Settings → General → Features**, and merge the form into the default branch so GitHub can display it.
 
 Participation is optional. A GitHub account is required, and usernames and submissions are public—not an anonymous survey. The form requires consent and prohibits names, contact details, units, duty stations, deployment information, and documents. Users should update their existing issue rather than submit duplicates. Do not upload personnel records or someone else's information.
 
 ### Maintainer update process
 
+Issues are **not** ingested automatically. Contributions reach the site only when a maintainer reviews the issue and commits updated aggregate rows. `scripts/add_report.py` turns one issue-form body into the matching aggregate CSV change:
+
+```sh
+# Requires the GitHub CLI (or paste the issue body into a file and pass its path).
+gh issue view 12 --json body -q .body | python scripts/add_report.py -
+# If that account previously had an accepted report, first remove the old answer:
+gh issue view 12 --json body -q .body > /tmp/old.md   # edit to the previously accepted text
+python scripts/add_report.py --subtract /tmp/old.md
+python scripts/build_data.py && python -m unittest discover -s tests -v
+git commit -am "Add voluntary report aggregate" && git push   # or open a PR; merging to main deploys
+```
+
+The helper checks consent boxes, status/service, rank/industry consistency with status, the community list, a non-future status date, and that the class already has model rows; it then increments (or with `--subtract`, decrements and removes empty) the matching aggregate row, sets its `as_of` to the review date (`--as-of`, default today), and validates the whole CSV before writing. It never writes usernames or issue numbers. Close or label the issue (for example `counted`) after committing so it is not counted twice. The manual steps it automates are:
+
 1. Review a voluntary issue for consent, supported class year, plausible status/pay grade, and a valid non-future date. Ask the submitter to correct invalid or contradictory answers; do not count them yet. Reports remain **unverified self-reports** even after review.
 2. Check that account's previous accepted submissions/updates in the issue history. Count only the latest accepted response once. When status, service, or grade changes, decrement its previous aggregate before incrementing the new one. Do not add GitHub usernames or issue identifiers to the CSV.
-3. Add or adjust the applicable `voluntary` aggregate row in `data/cohorts.csv`, using the aggregate review date in `as_of`. Use `Not disclosed` for still-in respondents who omit their grade, and use `Not disclosed` for out respondents who omit their highest grade or industry (the form's “Not disclosed / not applicable” or a blank optional answer). Current/last service in these rows is separate from original commissioning service in model rows.
+3. Add or adjust the applicable `voluntary` aggregate row in `data/cohorts.csv`, using the aggregate review date in `as_of`. Use `Not disclosed` for respondents who select no community, for still-in respondents who omit their grade, and use `Not disclosed` for out respondents who omit their highest grade or industry (the form's “Not disclosed / not applicable” or a blank optional answer). Current/last service in these rows is separate from original commissioning service in model rows.
 4. Rebuild and test, then commit the CSV and derived JSON. A push to `main` deploys the update. No issue is automatically ingested; no privileged workflow runs untrusted issue content. Unsupported classes need cited class/service/model rows before reports can be published.
 
 The rank denominator is **all accepted still-in respondents**, including `Not disclosed`/`Other`, not commissioned graduates, modeled still-in counts, or all survey respondents. For example, two O-4s, one O-5, and one undisclosed rank yield 50%, 25%, and 25%; out reports do not enter that calculation. Rounding may prevent exactly 100%. Zero responses show no percentages, not fabricated zero-percent rank estimates.
 
 The site also shows **highest pay grade held** and **current industry** among out respondents. Their denominator is **all accepted out respondents**, including `Not disclosed`; still-in reports do not enter those calculations. For example, two O-3s in tech, one O-4 in law, and one undisclosed grade/industry yield O-3 50%, O-4 25%, Not disclosed 25% and Tech 50%, Law 25%, Not disclosed 25%.
+
+The **Explore voluntary responses** panel uses the aggregate `responses` rows in each class JSON to filter by status, service, community, and rank, break down by any of those or industry, and split bars by a second dimension; clicking a bar drills into that group. Community shares use all filtered respondents as the denominator and count a respondent once in each community reported, so they can total more than 100%.
 
 Respondents are self-selected and may be inaccurate or stale; their rank distribution is **not representative of the whole class**. Voluntary counts never silently replace modeled counts. Keep the model reference date unchanged unless the model itself is updated; respondent aggregates have their own date.
 

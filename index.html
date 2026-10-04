@@ -99,6 +99,33 @@
         </div>
         <p class="muted">Rounded percentages may not sum to exactly 100%. Responses may be incomplete, duplicated, inaccurate, or out of date.</p>
       </article>
+      <article class="card" aria-labelledby="explore-title">
+        <h3 id="explore-title">Explore voluntary responses by community, rank, and more</h3>
+        <p>Filter accepted self-reports and break them down by warfare community, rank, serving status, service, or industry. Click a bar to drill into that group. Rank means current pay grade for still-in respondents and highest pay grade held for out respondents. Respondents who served in more than one community (for example, lateral transfers) count once in each community they report, so community shares can add up to more than 100%.</p>
+        <p id="explore-empty">No voluntary reports have been included yet, so there is nothing to break down.</p>
+        <div id="explore-body" hidden>
+          <form id="explore-controls" class="controls">
+            <div><label for="filter-status">Status</label><select id="filter-status" data-dimension="status"></select></div>
+            <div><label for="filter-service">Service</label><select id="filter-service" data-dimension="service"></select></div>
+            <div><label for="filter-community">Community</label><select id="filter-community" data-dimension="community"></select></div>
+            <div><label for="filter-rank">Rank</label><select id="filter-rank" data-dimension="rank"></select></div>
+            <div><label for="breakdown">Break down by</label><select id="breakdown"></select></div>
+            <div><label for="split">Split bars by</label><select id="split"></select></div>
+            <div class="controls-reset"><button type="reset" id="reset-filters">Reset</button></div>
+          </form>
+          <p id="explore-summary" role="status" aria-live="polite"></p>
+          <div class="explore-chart-wrap"><canvas id="explore-chart" role="img" aria-label="Breakdown of voluntary responses; figures are also shown in the table below."></canvas></div>
+          <p id="explore-chart-note" class="muted" hidden>Chart unavailable. All figures are shown in the table.</p>
+          <div class="table-wrap">
+            <table>
+              <caption class="sr-only">Breakdown of filtered voluntary responses</caption>
+              <thead id="explore-head"></thead>
+              <tbody id="explore-rows"></tbody>
+            </table>
+          </div>
+          <p class="muted">Self-selected and unverified; small groups are not representative of the class. Rounded percentages may not sum to exactly 100%.</p>
+        </div>
+      </article>
       <article class="card">
         <h3>The estimate behind these numbers</h3>
         <p id="method"></p>
@@ -108,7 +135,7 @@
     </section>
     <section class="card" aria-labelledby="contribute-title">
       <h2 id="contribute-title">Help fill in the picture</h2>
-      <p>USNA graduates can voluntarily report or update their own class, serving status, service, and current pay grade—or, if out, their highest pay grade held and broad current industry. Maintainers review submissions and update one aggregate CSV; responses do not appear automatically or alter the modeled estimate.</p>
+      <p>USNA graduates can voluntarily report or update their own class, serving status, service, warfare community (or communities), and current pay grade—or, if out, their highest pay grade held and broad current industry. Maintainers review submissions and update one aggregate CSV; responses do not appear automatically or alter the modeled estimate.</p>
       <p><strong>GitHub account required. Your username and submission will be public.</strong> Do not include names, contact details, units, duty stations, deployment details, or documents. If you do not want to share publicly, do not submit.</p>
       <p><a id="report-link" class="button-link" href="https://github.com/ColtonKawamura/whos-still-in/issues/new?template=voluntary-report.yml">Voluntarily report / update your status</a></p>
       <p>Already submitted? Update your existing issue rather than creating another report. Only your latest accepted response should be counted.</p>
@@ -121,7 +148,7 @@
         <p>The intended evidence pipeline uses Navy NAVADMIN and Marine Corps MARADMIN officer promotion results (O-4/LCDR/major and above), matched to a verified commissioning year and academy cohort. A recent promotion is evidence of service at that time, but lists include non-USNA officers, omit non-selectees and some components, and cannot by themselves measure everyone still serving. A missing name does not mean someone left.</p>
         <p><strong>The initial 2012 model has not performed those individual matches.</strong> Instead, it applies documented, illustrative service-specific retention assumptions to documented commissioning counts. MyNavy HR publishes promotion messages, but they do not establish the current USNA-class denominator or rank distribution. Broad DoD officer continuation statistics are context only: annual continuation, retention at five years, and retention at fourteen years are different measures. We do not present one as another or claim these assumptions are published cohort rates.</p>
         <p>“Still in” is intended to include active duty and reserve service in any U.S. service; public promotion evidence does not yet establish that coverage. The residual “out” category can include other losses, including deaths, and cannot distinguish separation from retirement. Estimates are rounded by service, then summed. The as-of date is the model's reference date, not a personnel-record update.</p>
-        <p>Voluntary reports are separate evidence. Current-rank percentages describe only respondents who report still serving, and highest-rank and industry percentages describe only respondents who report being out, each including “Not disclosed”; they cannot be extrapolated to the entire class. Maintainers manually check for duplicate/update submissions, replace prior accepted responses, and update the single CSV's aggregate rows. No report is an independently verified personnel record.</p>
+        <p>Voluntary reports are separate evidence. Warfare-community shares include every community a respondent reports, so they can exceed 100% in total. Current-rank percentages describe only respondents who report still serving, and highest-rank and industry percentages describe only respondents who report being out, each including “Not disclosed”; they cannot be extrapolated to the entire class. Maintainers manually check for duplicate/update submissions, replace prior accepted responses, and update the single CSV's aggregate rows. No report is an independently verified personnel record.</p>
         <p>Only aggregate counts are published on the site and in its CSV. Individual identification is not the goal, and no names appear here. Voluntary GitHub issues and usernames are public, as disclosed before submission. Adding a class means adding cited rows to the CSV and rebuilding the generated class index. See the <a href="https://github.com/ColtonKawamura/whos-still-in">repository</a> for inputs and the Python builder.</p>
       </div>
     </details>
