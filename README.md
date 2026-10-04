@@ -1,6 +1,6 @@
 # Who's still in?
 
-A responsive navy-blue-and-gold website for U.S. Naval Academy graduates to explore **estimated** still-serving versus out percentages by commissioning class, voluntarily report their status, and see current pay-grade percentages among still-in respondents. The website and its maintained CSV contain only aggregate data, not individual names. Voluntary GitHub submissions and usernames are public. No official logos or crests are used.
+A responsive navy-blue-and-gold website for U.S. Naval Academy graduates to see **self-reported** still-in, out, and unreported shares of each commissioning class's documented commissions, voluntarily report their status, and see current pay-grade percentages among still-in respondents. The website shows only reported data; the modeled retention rows in the CSV are no longer displayed. The website and its maintained CSV contain only aggregate data, not individual names. Voluntary GitHub submissions and usernames are public. No official logos or crests are used.
 
 **Live site:** https://coltonkawamura.github.io/whos-still-in/
 

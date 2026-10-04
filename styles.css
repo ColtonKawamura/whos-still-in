@@ -28,9 +28,8 @@ a:hover { text-decoration-thickness: 2px; }
 .button-link { display: inline-block; background: var(--navy); color: white; padding: .7rem 1rem; border-radius: .3rem; font-weight: 700; text-decoration: none; }
 progress { width: min(8rem, 100%); height: .8rem; accent-color: var(--navy); vertical-align: middle; }
 :focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
-.badge { background: #e9edf4; color: var(--navy); padding: .35rem .8rem; border-radius: .3rem; font-size: .85rem; font-weight: 700; }
-.estimate-notice { background: #fffbed; border-left: 4px solid var(--gold); padding: 1rem 1.2rem; margin-bottom: 1.5rem; }
-.estimate-notice p { margin: .4rem 0 0; }
+.report-cta { margin-bottom: 1.5rem; }
+.report-cta p { margin: .4rem 0 0; }
 .overview { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
 .card { background: white; border: 1px solid var(--border); border-radius: .5rem; padding: 1.5rem; margin-bottom: 1.5rem; }
 .chart-wrap { position: relative; height: 280px; }
@@ -38,10 +37,13 @@ progress { width: min(8rem, 100%); height: .8rem; accent-color: var(--navy); ver
 .swatch { display: inline-block; width: .8rem; height: .8rem; margin-right: .4rem; }
 .navy { background: var(--navy); }
 .gold { background: var(--gold); }
+.gray { background: #D9DEE7; }
 .stat { display: grid; padding-bottom: 1rem; color: var(--navy); }
 .stat strong { font-size: 2.6rem; line-height: 1.3; }
 .stat.out { border-top: 1px solid var(--border); padding-top: 1rem; }
 .stat.out strong { color: #74632f; }
+.stat.unreported { border-top: 1px solid var(--border); padding-top: 1rem; }
+.stat.unreported strong { color: #6b7280; }
 .summary-card p { margin-bottom: 0; }
 .muted { color: var(--muted); font-size: .9rem; }
 .table-wrap { overflow-x: auto; }
