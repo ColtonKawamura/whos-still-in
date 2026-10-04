@@ -5,6 +5,7 @@ import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from urllib.parse import parse_qs, urlsplit
 
 from test_add_report import body
 
@@ -32,12 +33,28 @@ class VoluntaryPrTests(unittest.TestCase):
             "number": 8, "state": "OPEN", "title": "[Voluntary report] Class of 2012",
             "body": body(), "labels": [], "author": {"login": "reporter", "is_bot": False},
         }
+        self.pr_create_error = ""
+        self.notice_id = ""
         self.write_command("gh", """#!/usr/bin/env bash
 set -eu
 printf 'gh %s\\n' "$*" >> "$COMMAND_LOG"
 case "$1 $2" in
   "issue view") cat "$ISSUE_JSON" ;;
-  "api "*|"issue list"|"label create"|"issue edit"|"issue comment"|"pr list"|"pr create") ;;
+  "pr create")
+    if [[ -n "$PR_CREATE_ERROR" ]]; then
+      echo "$PR_CREATE_ERROR" >&2
+      exit 1
+    fi ;;
+  "issue comment") cp "${@: -1}" "$COMMENT_FILE" ;;
+  "api --paginate")
+    if [[ "$*" == *voluntary-pr-permission-blocked* ]]; then
+      printf '%s' "$NOTICE_ID"
+    fi ;;
+  "api --method")
+    field="${@: -1}"
+    cp "${field#body=@}" "$COMMENT_FILE"
+    ;;
+  "issue list"|"label create"|"issue edit"|"pr list") ;;
   *) echo "Unexpected gh command: $*" >&2; exit 1 ;;
 esac
 """)
@@ -56,7 +73,7 @@ esac
         path.write_text(content)
         path.chmod(0o755)
 
-    def sync(self):
+    def sync(self, expected_returncode=0):
         issue_json = self.root / "issue.json"
         issue_json.write_text(json.dumps(self.issue))
         result = subprocess.run(
@@ -65,10 +82,12 @@ esac
                 "PATH": f"{self.root / 'bin'}{os.pathsep}{os.environ['PATH']}",
                 "GITHUB_REPOSITORY": "example/reports",
                 "ISSUE_JSON": str(issue_json), "COMMAND_LOG": str(self.log),
+                "PR_CREATE_ERROR": self.pr_create_error, "NOTICE_ID": self.notice_id,
+                "COMMENT_FILE": str(self.root / "comment.md"),
             },
             capture_output=True, text=True, timeout=30,
         )
-        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(result.returncode, expected_returncode, result.stdout + result.stderr)
         commands = self.log.read_text()
         self.assertIn("--json number,state,title,body,labels,author", commands)
         return result.stdout, commands
@@ -116,6 +135,41 @@ esac
         self.assertNotIn("gh issue edit", commands)
         self.assertNotIn("git push", commands)
         self.assertNotIn("gh pr create", commands)
+
+    def test_disabled_pr_creation_posts_manual_recovery_link(self):
+        self.pr_create_error = (
+            "pull request create failed: GraphQL: GitHub Actions is not permitted "
+            "to create or approve pull requests (createPullRequest)"
+        )
+        output, commands = self.sync()
+        self.assertIn("::warning::", output)
+        self.assertNotIn("Synced #8", output)
+        self.assertIn("git push --quiet --force origin voluntary-report/issue-8", commands)
+        self.assertIn("git checkout --quiet --detach FETCH_HEAD", commands)
+        notice = (self.root / "comment.md").read_text()
+        self.assertIn("It has not been counted yet.", notice)
+        self.assertIn("Allow GitHub Actions to create and approve pull requests", notice)
+        url = notice.split("[open the prepared pull request](", 1)[1].split(")", 1)[0]
+        self.assertEqual(urlsplit(url).path, "/example/reports/compare/main...voluntary-report/issue-8")
+        query = parse_qs(urlsplit(url).query)
+        self.assertEqual(query["title"], ["Add voluntary report from #8"])
+        self.assertEqual(query["labels"], ["voluntary-report"])
+        self.assertIn("<!-- accepted-report:", query["body"][0])
+
+    def test_other_pr_creation_errors_still_fail(self):
+        self.pr_create_error = "pull request create failed: GraphQL: Resource not accessible by integration"
+        output, commands = self.sync(expected_returncode=1)
+        self.assertNotIn("::warning::", output)
+        self.assertNotIn("gh issue comment", commands)
+        self.assertFalse((self.root / "comment.md").exists())
+
+    def test_disabled_pr_creation_updates_existing_notice(self):
+        self.pr_create_error = "GitHub Actions is not permitted to create or approve pull requests"
+        self.notice_id = "42"
+        _, commands = self.sync()
+        self.assertIn("gh api --method PATCH repos/example/reports/issues/comments/42", commands)
+        self.assertNotIn("gh issue comment", commands)
+        self.assertIn("It has not been counted yet.", (self.root / "comment.md").read_text())
 
 
 if __name__ == "__main__":
