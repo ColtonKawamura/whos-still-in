@@ -18,6 +18,34 @@ function text(id, value) {
   document.getElementById(id).textContent = value;
 }
 
+function renderVoluntary(data) {
+  const reports = data.voluntary;
+  const stillIn = reports.reported_still_in;
+  text("voluntary-summary", `${number.format(stillIn)} still-in and ${number.format(reports.reported_out)} out respondents accepted${reports.as_of ? ` · aggregate updated ${reports.as_of}` : " · no submissions included"}.`);
+  document.getElementById("rank-empty").hidden = stillIn > 0;
+  document.getElementById("rank-table-wrap").hidden = stillIn === 0;
+  const rows = document.getElementById("rank-rows");
+  rows.replaceChildren();
+  for (const entry of reports.rank_distribution) {
+    if (!entry.count) continue;
+    const row = document.createElement("tr");
+    const heading = document.createElement("th");
+    heading.scope = "row";
+    heading.textContent = entry.rank;
+    const count = document.createElement("td");
+    count.textContent = number.format(entry.count);
+    const share = document.createElement("td");
+    share.textContent = `${entry.percent.toFixed(1)}% `;
+    const bar = document.createElement("progress");
+    bar.max = 100;
+    bar.value = entry.percent;
+    bar.setAttribute("aria-label", `${entry.rank}: ${entry.percent}% of still-in respondents`);
+    share.append(bar);
+    row.append(heading, count, share);
+    rows.append(row);
+  }
+}
+
 function render(data) {
   text("class-title", `Class of ${data.year}`);
   text("confidence", data.confidence);
@@ -30,6 +58,9 @@ function render(data) {
   text("as-of", data.as_of);
   document.getElementById("as-of").dateTime = data.as_of;
   text("method", data.method);
+  renderVoluntary(data);
+  document.getElementById("report-link").href =
+    `https://github.com/ColtonKawamura/whos-still-in/issues/new?template=voluntary-report.yml&title=${encodeURIComponent(`[Voluntary report] Class of ${data.year}`)}`;
 
   const rows = document.getElementById("service-rows");
   rows.replaceChildren();

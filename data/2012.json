@@ -20,41 +20,137 @@
   "percent_in": 38.7,
   "percent_out": 61.3,
   "as_of": "2026-10-04",
-  "method": "Illustrative scenario approximately fourteen years after commissioning, not measured cohort retention. Official Navy/DVIDS captions report 810 Navy ensigns and 267 Marine Corps second lieutenants. Apply editorial assumptions of 40% still serving for original Navy commissions and 35% for original Marine commissions: 810 \u00d7 0.40 = 324 and 267 \u00d7 0.35 = 93.45, rounded half up to 93. This gives 417 modeled still in and 660 modeled out of the 1,077 documented commissions (38.7% / 61.3%). These assumptions are not published USNA or service-wide fourteen-year retention rates; no cohort matching has been performed. GAO's officer-community retention study and DoD continuation statistics provide background only, not calibration. Other commissioning services, reserves, and later transfers have not been independently counted. The model reference date does not establish anyone's status on that date.",
+  "method": "Illustrative scenario approximately fourteen years after commissioning, not measured cohort retention. Navy/DVIDS captions report 810 Navy ensigns and 267 Marine second lieutenants. Editorial retention assumptions of 40% USN and 35% USMC yield 324 and 93 modeled still in after rounding by service: 417 still in and 660 out (38.7% / 61.3%). These are not published cohort retention rates. MyNavy HR NAVADMIN and Marine MARADMIN promotion lists provide public promotion evidence, not a complete USNA cohort census; no individual matching has been performed. Voluntary responses and their ranks are reported separately and never replace the model. Neither source establishes complete reserve/transfer coverage.",
   "confidence": "Low \u2014 illustrative model; partial cohort",
-  "coverage_note": "Coverage: 1,077 documented Navy and Marine Corps commissions only, not the entire Class of 2012. Contemporary reporting counted 1,099 graduates. The other 22 graduates' exact commissioning dispositions are unresolved here; other U.S. services are unavailable, not zero. They are excluded from both percentages.",
+  "coverage_note": "Coverage: 1,077 documented Navy and Marine Corps commissions only, not the entire Class of 2012. Contemporary reporting counted 1,099 graduates. The other 22 graduates' exact commissioning dispositions are unresolved here; other U.S. services are unavailable, not zero. They are excluded from both modeled percentages.",
   "sources": [
     {
-      "title": "U.S. Navy / DVIDS: US Naval Academy Class of 2012 (810 ensigns, 267 Marine second lieutenants)",
+      "title": "U.S. Navy / DVIDS Class of 2012 commissioning caption",
       "url": "https://www.dvidshub.net/image/591206/us-naval-academy-class-2012"
     },
     {
-      "title": "U.S. Navy / DVIDS: second Class of 2012 commissioning caption",
+      "title": "U.S. Navy / DVIDS second commissioning caption",
       "url": "https://www.dvidshub.net/image/591210/us-naval-academy-class-2012"
     },
     {
-      "title": "CBS Baltimore: Class of 2012 graduation reporting (1,099 graduates, not U.S. commissions)",
+      "title": "CBS Baltimore Class of 2012 graduation reporting",
       "url": "https://www.cbsnews.com/baltimore/news/about-1000-to-graduate-from-naval-academy/"
     },
     {
-      "title": "Eye On Annapolis: contemporary graduation report (mentions international and other-service graduates)",
+      "title": "Eye On Annapolis contemporary graduation report",
       "url": "https://www.eyeonannapolis.net/2012/05/usna-class-of-2012-graduation/"
     },
     {
-      "title": "GAO-21-168: Navy officer-community retention research \u2014 context, not this cohort's rate",
-      "url": "https://www.gao.gov/products/gao-21-168"
+      "title": "MyNavy HR NAVADMIN 202/25 active-duty officer promotions",
+      "url": "https://www.mynavyhr.navy.mil/Portals/55/Messages/NAVADMIN/NAV2025/NAV25202.pdf"
     },
     {
-      "title": "DoD Office of the Actuary: military retirement and continuation reports \u2014 cross-check framework only",
-      "url": "https://actuary.defense.gov/Reports/Military-Retirement/"
-    },
-    {
-      "title": "MyNavy HR: NAVADMIN 2025 archive \u2014 public promotion evidence for future matching",
+      "title": "MyNavy HR NAVADMIN 2025 archive",
       "url": "https://www.mynavyhr.navy.mil/References/Messages/NAVADMIN-2025/"
     },
     {
-      "title": "Marine Corps: October 2025 officer promotions and projected November promotions \u2014 future matching source",
+      "title": "Marine Corps October 2025 officer promotions",
       "url": "https://www.marines.mil/News/Messages/Messages-Display/Article/4315022/officer-promotions-for-october-2025-and-projected-officer-promotions-for-novemb/"
+    },
+    {
+      "title": "GAO-21-168 Navy officer-community retention research",
+      "url": "https://www.gao.gov/products/gao-21-168"
+    },
+    {
+      "title": "DoD Office of the Actuary military retirement reports",
+      "url": "https://actuary.defense.gov/Reports/Military-Retirement/"
     }
-  ]
+  ],
+  "voluntary": {
+    "reported_still_in": 0,
+    "reported_out": 0,
+    "as_of": null,
+    "rank_distribution": [
+      {
+        "rank": "O-1",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "rank": "O-2",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "rank": "O-3",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "rank": "O-4",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "rank": "O-5",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "rank": "O-6",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "rank": "O-7",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "rank": "O-8",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "rank": "O-9",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "rank": "O-10",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "rank": "W-1",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "rank": "W-2",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "rank": "W-3",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "rank": "W-4",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "rank": "W-5",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "rank": "Other",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "rank": "Not disclosed",
+        "count": 0,
+        "percent": null
+      }
+    ]
+  }
 }

@@ -31,7 +31,7 @@ jobs:
         run: |
           mkdir -p _site/data
           cp index.html styles.css app.js _site/
-          cp data/index.json data/[0-9]*.json _site/data/
+          cp data/index.json data/[0-9]*.json data/cohorts.csv _site/data/
       - uses: actions/configure-pages@v5.0.0
       - uses: actions/upload-pages-artifact@v3.0.1
         with:

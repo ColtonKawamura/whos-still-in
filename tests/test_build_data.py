@@ -1,8 +1,10 @@
 import copy
+import csv
 import importlib.util
 import json
 import tempfile
 import unittest
+from datetime import date, timedelta
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -58,22 +60,27 @@ class BuildDataTests(unittest.TestCase):
 
     def test_adding_source_populates_index(self):
         with tempfile.TemporaryDirectory() as directory:
-            source_dir = Path(directory) / "sources"
+            source_file = Path(directory) / "cohorts.csv"
             output_dir = Path(directory) / "public"
-            source_dir.mkdir()
-            for year in [2012, 2013]:
-                source = dict(self.source, year=year)
-                (source_dir / f"{year}.json").write_text(json.dumps(source))
-            builder.build(source_dir, output_dir)
+            with (ROOT / "data" / "cohorts.csv").open(newline="") as handle:
+                reader = csv.DictReader(handle)
+                fields = reader.fieldnames
+                rows = list(reader)
+            with source_file.open("w", newline="") as handle:
+                writer = csv.DictWriter(handle, fieldnames=fields)
+                writer.writeheader()
+                for year in [2012, 2013]:
+                    writer.writerows(dict(row, year=year) for row in rows)
+            builder.build(source_file, output_dir)
             self.assertEqual(json.loads((output_dir / "index.json").read_text()),
                              {"years": [2013, 2012]})
             self.assertEqual(json.loads((output_dir / "2013.json").read_text())["year"], 2013)
 
     def test_documented_sources_match_generated_data(self):
-        source_dir = ROOT / "data" / "sources"
+        source_file = ROOT / "data" / "cohorts.csv"
         with tempfile.TemporaryDirectory() as directory:
             output_dir = Path(directory)
-            builder.build(source_dir, output_dir)
+            builder.build(source_file, output_dir)
             for generated in output_dir.glob("*.json"):
                 self.assertEqual(generated.read_text(), (ROOT / "data" / generated.name).read_text())
                 if generated.name != "index.json":
@@ -82,6 +89,63 @@ class BuildDataTests(unittest.TestCase):
                         data["estimated_still_in"] + data["estimated_out"],
                         data["commissioned_total"],
                     )
+
+    def test_rank_percentages_use_still_in_respondents_only(self):
+        rows = [
+            {"service": "USN", "status": "still_in", "rank": "O-4", "count": "2", "as_of": "2026-10-04"},
+            {"service": "USMC", "status": "still_in", "rank": "O-5", "count": "1", "as_of": "2026-10-04"},
+            {"service": "USN", "status": "still_in", "rank": "Not disclosed", "count": "1", "as_of": "2026-10-04"},
+            {"service": "USN", "status": "out", "rank": "", "count": "3", "as_of": "2026-10-04"},
+        ]
+        result = builder.build_voluntary(rows)
+        ranks = {entry["rank"]: entry for entry in result["rank_distribution"]}
+        self.assertEqual(result["reported_still_in"], 4)
+        self.assertEqual(result["reported_out"], 3)
+        self.assertEqual(ranks["O-4"]["percent"], 50)
+        self.assertEqual(ranks["O-5"]["percent"], 25)
+        self.assertEqual(ranks["Not disclosed"]["percent"], 25)
+
+    def test_empty_rank_data_is_not_a_zero_percent_estimate(self):
+        result = builder.build_voluntary([])
+        self.assertEqual(result["reported_still_in"], 0)
+        self.assertIsNone(result["as_of"])
+        self.assertTrue(all(entry["percent"] is None for entry in result["rank_distribution"]))
+
+    def test_rejects_invalid_voluntary_rows(self):
+        row = {"service": "USN", "status": "still_in", "rank": "O-4", "count": "1", "as_of": "2026-10-04"}
+        for key, value in [("count", "-1"), ("count", "1.5"), ("rank", "O-99"),
+                           ("status", "out"), ("service", ""),
+                           ("as_of", (date.today() + timedelta(days=1)).isoformat())]:
+            with self.subTest(key=key):
+                with self.assertRaises(ValueError):
+                    builder.build_voluntary([dict(row, **{key: value})])
+
+    def test_csv_rejects_duplicate_service_rows(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "cohorts.csv"
+            source = (ROOT / "data" / "cohorts.csv").read_text()
+            source += "2012,service,USN,,,810,0.40,,,,\n"
+            path.write_text(source)
+            with self.assertRaises(ValueError):
+                builder.read_sources(path)
+
+    def test_csv_voluntary_rows_flow_to_generated_rank_data(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "cohorts.csv"
+            output = Path(directory) / "public"
+            source = (ROOT / "data" / "cohorts.csv").read_text()
+            report = "2012,voluntary,USN,still_in,O-4,2,,2026-10-04,,,\n"
+            path.write_text(source + report)
+            builder.build(path, output)
+            result = json.loads((output / "2012.json").read_text())
+            self.assertEqual(result["estimated_still_in"], 417)
+            self.assertEqual(result["voluntary"]["reported_still_in"], 2)
+            rank = next(entry for entry in result["voluntary"]["rank_distribution"]
+                        if entry["rank"] == "O-4")
+            self.assertEqual(rank["percent"], 100)
+            path.write_text(source + report + report)
+            with self.assertRaises(ValueError):
+                builder.read_sources(path)
 
 
 if __name__ == "__main__":
