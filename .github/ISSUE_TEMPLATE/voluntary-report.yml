@@ -1,0 +1,85 @@
+name: Voluntary serving-status report
+description: Report or update your own USNA class, serving status, and current pay grade.
+title: "[Voluntary report] Class of "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Optional, public self-report — not an official personnel record.**
+        GitHub requires an account; your username, issue, and answers will be public.
+        Do not include names, contact details, units, duty stations, deployment information, or documents.
+        Maintainers review reports manually and publish only aggregate counts in the CSV.
+        Reports are not anonymous, instantly published, or independently verified. Please update your existing issue rather than creating duplicate reports.
+  - type: input
+    id: class-year
+    attributes:
+      label: USNA graduating class year
+      placeholder: "2012"
+    validations:
+      required: true
+  - type: dropdown
+    id: status
+    attributes:
+      label: Current serving status
+      options:
+        - Still in (active or reserve)
+        - Out (separated or retired)
+    validations:
+      required: true
+  - type: dropdown
+    id: service
+    attributes:
+      label: Current service (or last service if out)
+      options:
+        - U.S. Navy
+        - U.S. Marine Corps
+        - U.S. Army
+        - U.S. Air Force
+        - U.S. Space Force
+        - U.S. Coast Guard
+        - Other / not disclosed
+    validations:
+      required: true
+  - type: dropdown
+    id: rank
+    attributes:
+      label: Current pay grade — Still in only
+      description: If out, choose Not disclosed / not applicable. Do not report a former grade as current.
+      options:
+        - Not disclosed / not applicable
+        - O-1
+        - O-2
+        - O-3
+        - O-4
+        - O-5
+        - O-6
+        - O-7
+        - O-8
+        - O-9
+        - O-10
+        - W-1
+        - W-2
+        - W-3
+        - W-4
+        - W-5
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: as-of
+    attributes:
+      label: Status as of (YYYY-MM-DD)
+      placeholder: "2026-10-04"
+    validations:
+      required: true
+  - type: checkboxes
+    id: consent
+    attributes:
+      label: Voluntary participation
+      options:
+        - label: I am reporting my own information as a USNA graduate, not someone else's.
+          required: true
+        - label: I understand this issue and my GitHub username are public and consent to aggregate use of my answers.
+          required: true
+        - label: I have not added names, contact details, units, duty stations, deployment information, or documents.
+          required: true

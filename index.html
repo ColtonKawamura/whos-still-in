@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="An unofficial, transparent estimate of how many USNA classmates are still serving.">
+  <title>Who's still in? | USNA class estimates</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header>
+    <div class="container masthead">
+      <span class="anchor" aria-hidden="true">⚓</span>
+      <div>
+        <p class="eyebrow">An unofficial USNA class perspective</p>
+        <h1>Who's still in?</h1>
+        <p>For USNA graduates: see how many of your classmates may still be serving.</p>
+      </div>
+    </div>
+  </header>
+  <main class="container">
+    <section class="class-picker" aria-label="Choose your class">
+      <div>
+        <label for="class-year">Your commissioning class</label>
+        <select id="class-year" disabled><option>Loading classes…</option></select>
+      </div>
+      <p>Navy, Marine Corps, and other U.S. commissioning services.</p>
+    </section>
+    <p id="status" role="status" aria-live="polite">Loading class data…</p>
+    <section id="results" hidden aria-labelledby="class-title">
+      <div class="section-heading">
+        <h2 id="class-title"></h2>
+        <span id="confidence" class="badge"></span>
+      </div>
+      <aside class="estimate-notice">
+        <strong>A modeled estimate, not a verified headcount.</strong>
+        <p>Commissioning totals are sourced; retention rates are explicit assumptions, not measured class outcomes. “Out” is the model's remainder, not a verified count of separations or retirements.</p>
+        <p id="coverage-note"></p>
+      </aside>
+      <div class="overview">
+        <article class="card chart-card" aria-label="Serving status estimate">
+          <div class="chart-wrap">
+            <canvas id="status-chart" role="img" aria-label="Estimated still serving versus out; figures are also shown below."></canvas>
+          </div>
+          <p id="chart-note" class="muted" hidden>Chart unavailable. All figures are shown in the summary and table.</p>
+          <div class="legend"><span><i class="swatch navy"></i>Still in</span><span><i class="swatch gold"></i>Out</span></div>
+        </article>
+        <article class="card summary-card">
+          <div class="stat"><span>Estimated still in</span><strong id="percent-in"></strong><span id="count-in"></span></div>
+          <div class="stat out"><span>Estimated separated / retired</span><strong id="percent-out"></strong><span id="count-out"></span></div>
+          <p><strong id="total"></strong> documented commissions in the modeled denominator</p>
+          <p class="muted">Model as of <time id="as-of"></time> · not a live personnel count</p>
+        </article>
+      </div>
+      <article class="card service-card">
+        <h3>By commissioning service</h3>
+        <p class="muted">All serving-status counts are modeled. Service reflects the original commission, not later transfers.</p>
+        <div class="table-wrap">
+          <table>
+            <caption class="sr-only">Commissioning counts and estimated serving status by service</caption>
+            <thead><tr><th scope="col">Service</th><th scope="col">Commissioned</th><th scope="col">Still in (est.)</th><th scope="col">Out (est.)</th><th scope="col">Assumed retention</th></tr></thead>
+            <tbody id="service-rows"></tbody>
+          </table>
+        </div>
+      </article>
+      <article class="card" aria-labelledby="rank-title">
+        <h3 id="rank-title">Ranks among voluntary “Still in” respondents</h3>
+        <p>Self-reported current pay grades, not a promotion-list census or a representative sample of the class. Percentages use all still-in respondents, including those who do not disclose a rank.</p>
+        <p id="voluntary-summary"></p>
+        <p id="rank-empty">No voluntary still-in reports have been included yet. No rank distribution can be inferred from the retention model.</p>
+        <div id="rank-table-wrap" class="table-wrap" hidden>
+          <table>
+            <caption class="sr-only">Current pay grades among voluntary still-serving respondents</caption>
+            <thead><tr><th scope="col">Pay grade</th><th scope="col">Respondents</th><th scope="col">Share of still-in respondents</th></tr></thead>
+            <tbody id="rank-rows"></tbody>
+          </table>
+        </div>
+        <p class="muted">Rounded rank percentages may not sum to exactly 100%. Responses may be incomplete, duplicated, inaccurate, or out of date.</p>
+      </article>
+      <article class="card">
+        <h3>The estimate behind these numbers</h3>
+        <p id="method"></p>
+        <h3>Public sources &amp; context</h3>
+        <ul id="sources"></ul>
+      </article>
+    </section>
+    <section class="card" aria-labelledby="contribute-title">
+      <h2 id="contribute-title">Help fill in the picture</h2>
+      <p>USNA graduates can voluntarily report or update their own class, serving status, service, and current pay grade. Maintainers review submissions and update one aggregate CSV; responses do not appear automatically or alter the modeled estimate.</p>
+      <p><strong>GitHub account required. Your username and submission will be public.</strong> Do not include names, contact details, units, duty stations, deployment details, or documents. If you do not want to share publicly, do not submit.</p>
+      <p><a id="report-link" class="button-link" href="https://github.com/ColtonKawamura/whos-still-in/issues/new?template=voluntary-report.yml">Voluntarily report / update your status</a></p>
+      <p>Already submitted? Update your existing issue rather than creating another report. Only your latest accepted response should be counted.</p>
+      <p><a href="data/cohorts.csv" download>Download the maintained aggregate CSV and public-source citations</a></p>
+    </section>
+    <details class="card">
+      <summary>How does this work?</summary>
+      <div class="explanation">
+        <p>There is no single public API that gives current serving status for a USNA class. We start with public graduation and commissioning releases. For 2012, only the documented Navy/Marine commissioning subtotal is modeled; the other 22 graduates' commissioning dispositions are unresolved, not assumed to be U.S. commissions or zero other-service commissions. International graduates and non-commissioning graduates should be excluded when a full breakdown is established.</p>
+        <p>The intended evidence pipeline uses Navy NAVADMIN and Marine Corps MARADMIN officer promotion results (O-4/LCDR/major and above), matched to a verified commissioning year and academy cohort. A recent promotion is evidence of service at that time, but lists include non-USNA officers, omit non-selectees and some components, and cannot by themselves measure everyone still serving. A missing name does not mean someone left.</p>
+        <p><strong>The initial 2012 model has not performed those individual matches.</strong> Instead, it applies documented, illustrative service-specific retention assumptions to documented commissioning counts. MyNavy HR publishes promotion messages, but they do not establish the current USNA-class denominator or rank distribution. Broad DoD officer continuation statistics are context only: annual continuation, retention at five years, and retention at fourteen years are different measures. We do not present one as another or claim these assumptions are published cohort rates.</p>
+        <p>“Still in” is intended to include active duty and reserve service in any U.S. service; public promotion evidence does not yet establish that coverage. The residual “out” category can include other losses, including deaths, and cannot distinguish separation from retirement. Estimates are rounded by service, then summed. The as-of date is the model's reference date, not a personnel-record update.</p>
+        <p>Voluntary reports are separate evidence. Rank percentages describe only respondents who report still serving, including “Not disclosed”; they cannot be extrapolated to the entire class. Maintainers manually check for duplicate/update submissions, replace prior accepted responses, and update the single CSV's aggregate rows. No report is an independently verified personnel record.</p>
+        <p>Only aggregate counts are published on the site and in its CSV. Individual identification is not the goal, and no names appear here. Voluntary GitHub issues and usernames are public, as disclosed before submission. Adding a class means adding cited rows to the CSV and rebuilding the generated class index. See the <a href="https://github.com/ColtonKawamura/whos-still-in">repository</a> for inputs and the Python builder.</p>
+      </div>
+    </details>
+  </main>
+  <footer class="container">
+    <p>This is an unofficial estimate built from public sources and could be wrong or out of date. Not affiliated with or endorsed by the U.S. Naval Academy, the Department of the Navy, or the DoD.</p>
+  </footer>
+</body>
+</html>
