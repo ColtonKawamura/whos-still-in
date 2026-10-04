@@ -67,7 +67,7 @@ sync() {
   local issue="$1"
   require_number "$issue"
   local branch="$BRANCH_PREFIX$issue"
-  gh issue view "$issue" --repo "$GITHUB_REPOSITORY" --json number,state,body,labels,author > "$WORK/issue.json"
+  gh issue view "$issue" --repo "$GITHUB_REPOSITORY" --json number,state,title,body,labels,author > "$WORK/issue.json"
   python3 - "$WORK" "$REPORT_LABEL" <<'PY'
 import json, pathlib, sys
 work, label = pathlib.Path(sys.argv[1]), sys.argv[2]
@@ -76,9 +76,11 @@ issue = json.loads((work / "issue.json").read_text())
 (work / "author").write_text(issue["author"]["login"])
 (work / "state").write_text(issue["state"])
 (work / "is_bot").write_text(str(bool(issue["author"].get("is_bot"))))
-(work / "labelled").write_text(str(any(l["name"] == label for l in issue["labels"])))
+(work / "is_report").write_text(str(
+    any(l["name"] == label for l in issue["labels"]) or issue["title"].startswith("[Voluntary report]")
+))
 PY
-  if [[ "$(cat "$WORK/labelled")" != "True" || "$(cat "$WORK/is_bot")" == "True" ]]; then
+  if [[ "$(cat "$WORK/is_report")" != "True" || "$(cat "$WORK/is_bot")" == "True" ]]; then
     echo "Issue #$issue is not a voluntary report; skipping."
     return 0
   fi
@@ -118,6 +120,7 @@ PY
     git checkout --quiet --detach FETCH_HEAD
     return 0
   fi
+  gh issue edit "$issue" --repo "$GITHUB_REPOSITORY" --add-label "$REPORT_LABEL" >/dev/null
   if git diff --quiet -- "$CSV"; then
     echo "Issue #$issue matches its counted report; nothing to change."
     close_pr "$branch" "No change: #$issue matches the report already counted."
