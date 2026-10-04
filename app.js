@@ -57,50 +57,19 @@ function renderDistribution(tbodyId, entries, key, group) {
   }
 }
 
-function renderComparison(reports) {
-  const rows = document.getElementById("rank-rows");
-  rows.replaceChildren();
-  const stillIn = new Map(reports.rank_distribution.map((entry) => [entry.rank, entry]));
-  const out = new Map(reports.highest_rank_distribution.map((entry) => [entry.rank, entry]));
-  const ranks = reports.rank_distribution.map((entry) => entry.rank)
-    .filter((rank) => (stillIn.get(rank)?.count || 0) + (out.get(rank)?.count || 0) > 0);
-  for (const rank of ranks) {
-    const row = document.createElement("tr");
-    const heading = document.createElement("th");
-    heading.scope = "row";
-    heading.textContent = rank;
-    row.append(heading);
-    for (const [map, group] of [[stillIn, "still-in"], [out, "out"]]) {
-      const entry = map.get(rank);
-      const count = document.createElement("td");
-      const share = document.createElement("td");
-      if (entry && entry.count) {
-        count.textContent = number.format(entry.count);
-        share.textContent = `${entry.percent.toFixed(1)}% `;
-        const bar = document.createElement("progress");
-        bar.max = 100;
-        bar.value = entry.percent;
-        bar.setAttribute("aria-label", `${rank}: ${entry.percent}% of ${group} respondents`);
-        share.append(bar);
-      } else {
-        count.textContent = "–";
-        share.textContent = "–";
-      }
-      row.append(count, share);
-    }
-    rows.append(row);
-  }
-}
-
 function renderVoluntary(data) {
   const reports = data.voluntary;
   const stillIn = reports.reported_still_in;
   const out = reports.reported_out;
   text("voluntary-summary", `${number.format(stillIn)} still-in and ${number.format(out)} out respondents accepted${reports.as_of ? ` · aggregate updated ${reports.as_of}` : " · no submissions included"}.`);
-  document.getElementById("rank-empty").hidden = stillIn + out > 0;
-  document.getElementById("rank-table-wrap").hidden = stillIn + out === 0;
-  document.getElementById("industry-table-wrap").hidden = out === 0;
-  renderComparison(reports);
+  document.getElementById("rank-empty").hidden = stillIn > 0;
+  document.getElementById("rank-table-wrap").hidden = stillIn === 0;
+  renderDistribution("rank-rows", reports.rank_distribution, "rank", "still-in");
+  document.getElementById("out-empty").hidden = out > 0;
+  for (const id of ["highest-rank-table-wrap", "industry-table-wrap"]) {
+    document.getElementById(id).hidden = out === 0;
+  }
+  renderDistribution("highest-rank-rows", reports.highest_rank_distribution, "rank", "out");
   renderDistribution("industry-rows", reports.industry_distribution, "industry", "out");
   setupExplorer(reports);
 }
