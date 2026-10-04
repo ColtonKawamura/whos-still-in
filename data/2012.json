@@ -350,6 +350,175 @@
         "count": 0,
         "percent": null
       }
-    ]
+    ],
+    "reported_multiple_communities": 0,
+    "community_distribution": [
+      {
+        "community": "Surface",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "community": "Submarine",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "community": "Aviation",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "community": "Special Warfare (SEAL)",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "community": "Special Operations (EOD)",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "community": "Nuclear Power (Naval Reactors / Instructor)",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "community": "Intelligence",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "community": "Cryptologic Warfare",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "community": "Information Professional",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "community": "Oceanography (METOC)",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "community": "Maritime Space",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "community": "Foreign Area Officer",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "community": "Engineering Duty",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "community": "Aerospace Engineering Duty",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "community": "Aviation Maintenance Duty",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "community": "Human Resources",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "community": "Public Affairs",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "community": "Medical",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "community": "Supply",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "community": "Civil Engineer Corps",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "community": "JAG",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "community": "Chaplain",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "community": "Infantry",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "community": "Artillery",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "community": "Armor / Assault Amphibian",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "community": "Combat Engineer",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "community": "Logistics",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "community": "Communications",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "community": "Military Police",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "community": "Air Command and Control",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "community": "Other service (Army / Air Force / Space Force / Coast Guard)",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "community": "Other",
+        "count": 0,
+        "percent": null
+      },
+      {
+        "community": "Not disclosed",
+        "count": 0,
+        "percent": null
+      }
+    ],
+    "responses": []
   }
 }

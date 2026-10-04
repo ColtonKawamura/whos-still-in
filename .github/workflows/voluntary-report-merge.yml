@@ -1,0 +1,90 @@
+name: Voluntary report merge
+
+# Approving a generated voluntary-report PR (as a user with write access) merges it and redeploys.
+# Merging such a PR manually also records it on the issue. Merges made by this workflow use
+# GITHUB_TOKEN, which does not trigger push workflows, so the deploy workflow is dispatched explicitly.
+on:
+  pull_request_review:
+    types: [submitted]
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: voluntary-report-merge
+  cancel-in-progress: false
+
+jobs:
+  merge-on-approval:
+    if: >-
+      github.event_name == 'pull_request_review' &&
+      github.event.review.state == 'approved' &&
+      startsWith(github.event.pull_request.head.ref, 'voluntary-report/issue-') &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.state == 'open'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: write
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Check reviewer has write access
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REVIEWER: ${{ github.event.review.user.login }}
+        run: |
+          permission="$(gh api "repos/$GITHUB_REPOSITORY/collaborators/$REVIEWER/permission" --jq .permission)"
+          case "$permission" in
+            admin|maintain|write) echo "$REVIEWER has $permission access" ;;
+            *) echo "::error::$REVIEWER cannot approve voluntary reports ($permission)"; exit 1 ;;
+          esac
+      - uses: actions/checkout@v4.2.2
+        with:
+          ref: main
+      - uses: actions/setup-python@v5.6.0
+        with:
+          python-version: '3.12'
+      - name: Merge the approved commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.review.commit_id }}
+        run: gh pr merge "$PR" --repo "$GITHUB_REPOSITORY" --squash --delete-branch --match-head-commit "$HEAD_SHA"
+      - name: Record the report and refresh other report PRs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          git fetch --quiet origin main && git checkout --quiet --detach FETCH_HEAD
+          scripts/voluntary_pr.sh post-merge "$PR"
+      - name: Redeploy the site
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run deploy.yml --repo "$GITHUB_REPOSITORY" --ref main
+
+  record-manual-merge:
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.merged == true &&
+      startsWith(github.event.pull_request.head.ref, 'voluntary-report/issue-') &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    steps:
+      - uses: actions/checkout@v4.2.2
+        with:
+          ref: main
+      - uses: actions/setup-python@v5.6.0
+        with:
+          python-version: '3.12'
+      - name: Record the report and refresh other report PRs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: scripts/voluntary_pr.sh post-merge "$PR"

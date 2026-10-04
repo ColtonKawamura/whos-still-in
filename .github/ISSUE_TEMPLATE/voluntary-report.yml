@@ -1,6 +1,7 @@
 name: Voluntary serving-status report
-description: Report or update your own USNA class, serving status, pay grade, and (optionally) highest grade and industry if out.
+description: Report or update your own USNA class, serving status, pay grade, warfare community, and (optionally) highest grade and industry if out.
 title: "[Voluntary report] Class of "
+labels: ["voluntary-report"]
 body:
   - type: markdown
     attributes:
@@ -8,7 +9,7 @@ body:
         **Optional, public self-report — not an official personnel record.**
         GitHub requires an account; your username, issue, and answers will be public.
         Do not include names, contact details, units, duty stations, deployment information, or documents.
-        Maintainers review reports manually and publish only aggregate counts in the CSV.
+        A bot checks your answers and opens a pull request that adds them to aggregate counts; a maintainer reviews and approves it before anything is published. Only aggregate counts are published in the CSV.
         Reports are not anonymous, instantly published, or independently verified. Please update your existing issue rather than creating duplicate reports.
   - type: input
     id: class-year
@@ -65,6 +66,47 @@ body:
         - Other
     validations:
       required: true
+  - type: dropdown
+    id: community
+    attributes:
+      label: Warfare community / designator (select all that apply)
+      description: Choose every community you have served in, including any you lateral transferred from or into. Leave blank to not disclose.
+      multiple: true
+      options:
+        - Surface
+        - Submarine
+        - Aviation
+        - Special Warfare (SEAL)
+        - Special Operations (EOD)
+        - Nuclear Power (Naval Reactors / Instructor)
+        - Intelligence
+        - Cryptologic Warfare
+        - Information Professional
+        - Oceanography (METOC)
+        - Maritime Space
+        - Foreign Area Officer
+        - Engineering Duty
+        - Aerospace Engineering Duty
+        - Aviation Maintenance Duty
+        - Human Resources
+        - Public Affairs
+        - Medical
+        - Supply
+        - Civil Engineer Corps
+        - JAG
+        - Chaplain
+        - Infantry
+        - Artillery
+        - Armor / Assault Amphibian
+        - Combat Engineer
+        - Logistics
+        - Communications
+        - Military Police
+        - Air Command and Control
+        - Other service (Army / Air Force / Space Force / Coast Guard)
+        - Other
+    validations:
+      required: false
   - type: dropdown
     id: highest-rank
     attributes:

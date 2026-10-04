@@ -20,6 +20,34 @@ INDUSTRIES = [
     "Law enforcement / first responder", "Student / graduate school",
     "Not working / retired / caregiving", "Other", "Not disclosed",
 ]
+# Multi-select: respondents may list every community they served in (e.g. lateral transfers).
+# Names must not contain commas or semicolons (GitHub joins multi-select answers with ", ";
+# the CSV stores combinations joined with "; ").
+COMMUNITIES = [
+    "Surface", "Submarine", "Aviation", "Special Warfare (SEAL)", "Special Operations (EOD)",
+    "Nuclear Power (Naval Reactors / Instructor)", "Intelligence", "Cryptologic Warfare",
+    "Information Professional", "Oceanography (METOC)", "Maritime Space", "Foreign Area Officer",
+    "Engineering Duty", "Aerospace Engineering Duty", "Aviation Maintenance Duty",
+    "Human Resources", "Public Affairs", "Medical", "Supply", "Civil Engineer Corps", "JAG",
+    "Chaplain", "Infantry", "Artillery", "Armor / Assault Amphibian", "Combat Engineer",
+    "Logistics", "Communications", "Military Police", "Air Command and Control",
+    "Other service (Army / Air Force / Space Force / Coast Guard)", "Other", "Not disclosed",
+]
+COMMUNITY_SEPARATOR = "; "
+
+
+def parse_communities(value):
+    """Return a canonical community list; reject unknown, duplicate, or out-of-order values."""
+    communities = (value or "").split(COMMUNITY_SEPARATOR) if value else []
+    if not communities or any(item not in COMMUNITIES for item in communities):
+        raise ValueError(f"invalid community value: {value!r}")
+    if len(set(communities)) != len(communities):
+        raise ValueError(f"duplicate community: {value!r}")
+    if "Not disclosed" in communities and len(communities) > 1:
+        raise ValueError("Not disclosed cannot be combined with other communities")
+    if communities != sorted(communities, key=COMMUNITIES.index):
+        raise ValueError(f"communities must follow the canonical order: {value!r}")
+    return communities
 
 
 def read_sources(source_file):
@@ -60,7 +88,8 @@ def read_sources(source_file):
                     raise ValueError("sources require a title and HTTPS URL")
                 source["sources"].append({"title": row["title"], "url": row["url"]})
             elif kind == "voluntary":
-                key = (year, row["service"], row["status"], row["rank"], row["industry"])
+                parse_communities(row["community"])
+                key = (year, row["service"], row["status"], row["rank"], row["community"], row["industry"])
                 if key in seen_reports:
                     raise ValueError(f"duplicate voluntary aggregate: {key}")
                 seen_reports.add(key)
@@ -88,7 +117,9 @@ def build_voluntary(rows):
     counts = {rank: 0 for rank in RANKS}
     highest = {rank: 0 for rank in RANKS}
     industries = {industry: 0 for industry in INDUSTRIES}
-    still_in = out = 0
+    communities = {community: 0 for community in COMMUNITIES}
+    responses = []
+    still_in = out = multiple = 0
     report_dates = []
     for row in rows:
         count = int(row["count"])
@@ -99,6 +130,7 @@ def build_voluntary(rows):
             raise ValueError("report aggregate date cannot be in the future")
         report_dates.append(row["as_of"])
         industry = row.get("industry", "")
+        community_list = parse_communities(row.get("community", ""))
         if row["status"] == "still_in" and row["rank"] in RANKS and industry == "":
             still_in += count
             counts[row["rank"]] += count
@@ -108,6 +140,16 @@ def build_voluntary(rows):
             industries[industry] += count
         else:
             raise ValueError("invalid voluntary status/rank/industry combination")
+        for community in community_list:
+            communities[community] += count
+        if len(community_list) > 1:
+            multiple += count
+        if count:
+            responses.append({
+                "status": row["status"], "service": row["service"], "rank": row["rank"],
+                "communities": community_list, "industry": industry or None, "count": count,
+            })
+    total = still_in + out
     return {
         "reported_still_in": still_in,
         "reported_out": out,
@@ -115,6 +157,9 @@ def build_voluntary(rows):
         "rank_distribution": distribution(RANKS, counts, still_in, "rank"),
         "highest_rank_distribution": distribution(RANKS, highest, out, "rank"),
         "industry_distribution": distribution(INDUSTRIES, industries, out, "industry"),
+        "reported_multiple_communities": multiple,
+        "community_distribution": distribution(COMMUNITIES, communities, total, "community"),
+        "responses": responses,
     }
 
 
