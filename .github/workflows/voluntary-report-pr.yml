@@ -3,6 +3,11 @@ name: Voluntary report pull request
 # Turns a voluntary-report issue into a pull request that updates the aggregate CSV and JSON.
 # Issue content is untrusted: it is read with gh into a file and parsed by scripts/add_report.py,
 # never interpolated into a shell command. Scripts always come from main, not from the issue.
+#
+# The job trigger matches on the issue title prefix in addition to the "voluntary-report" label:
+# the label is only auto-applied by the issue form if it already exists in the repo, so the very
+# first submission ever made (before the label exists) would otherwise never trigger this workflow.
+# scripts/voluntary_pr.sh adds the label itself once it confirms the issue is a real report.
 on:
   issues:
     types: [opened, edited, reopened, labeled]
@@ -21,7 +26,10 @@ concurrency:
 
 jobs:
   sync:
-    if: github.event_name == 'workflow_dispatch' || contains(github.event.issue.labels.*.name, 'voluntary-report')
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.issue.labels.*.name, 'voluntary-report') ||
+      startsWith(github.event.issue.title, '[Voluntary report]')
     runs-on: ubuntu-latest
     permissions:
       contents: write
