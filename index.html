@@ -52,30 +52,22 @@
         </article>
       </div>
       <article class="card" aria-labelledby="rank-title">
-        <h3 id="rank-title">Current pay grade (still in)</h3>
+        <h3 id="rank-title">Pay grade: still in vs. out</h3>
         <p id="voluntary-summary"></p>
-        <p id="rank-empty">No still-in reports yet.</p>
+        <p id="rank-empty">No reports yet.</p>
         <div id="rank-table-wrap" class="table-wrap" hidden>
-          <table>
-            <caption class="sr-only">Current pay grades among voluntary still-serving respondents</caption>
-            <thead><tr><th scope="col">Pay grade</th><th scope="col">Respondents</th><th scope="col">Share of still-in respondents</th></tr></thead>
+          <table class="compare">
+            <caption class="sr-only">Current pay grade of still-in respondents compared with pay grade at separation of out respondents</caption>
+            <thead>
+              <tr><th scope="col" rowspan="2">Pay grade</th><th scope="colgroup" colspan="2">Still in (current)</th><th scope="colgroup" colspan="2">Out (at separation)</th></tr>
+              <tr><th scope="col">Respondents</th><th scope="col">Share</th><th scope="col">Respondents</th><th scope="col">Share</th></tr>
+            </thead>
             <tbody id="rank-rows"></tbody>
-          </table>
-        </div>
-      </article>
-      <article class="card" aria-labelledby="out-title">
-        <h3 id="out-title">Pay grade at separation and industry (out)</h3>
-        <p id="out-empty">No out reports yet.</p>
-        <div id="highest-rank-table-wrap" class="table-wrap" hidden>
-          <table>
-            <caption class="sr-only">Pay grades at separation among voluntary out respondents</caption>
-            <thead><tr><th scope="col">Pay grade at separation</th><th scope="col">Respondents</th><th scope="col">Share of out respondents</th></tr></thead>
-            <tbody id="highest-rank-rows"></tbody>
           </table>
         </div>
         <div id="industry-table-wrap" class="table-wrap" hidden>
           <table>
-            <caption class="sr-only">Current industries among voluntary out respondents</caption>
+            <caption>Current industry (out respondents)</caption>
             <thead><tr><th scope="col">Current industry</th><th scope="col">Respondents</th><th scope="col">Share of out respondents</th></tr></thead>
             <tbody id="industry-rows"></tbody>
           </table>
