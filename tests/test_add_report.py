@@ -19,7 +19,7 @@ def body(**answers):
     values = {
         "year": "2012", "status": "Still in (active or reserve)", "service": "U.S. Navy", "rank": "O-4",
         "community": "Foreign Area Officer, Surface", "highest_rank": "_No response_",
-        "industry": "_No response_", "as_of": "2026-10-01", "consent": CONSENT,
+        "industry": "_No response_", "separation_year": "_No response_", "as_of": "2026-10-01", "consent": CONSENT,
     } | answers
     return "\n\n".join(f"### {add_report.LABELS[key]}\n\n{value}" for key, value in values.items())
 
@@ -43,8 +43,29 @@ class AddReportTests(unittest.TestCase):
         row = add_report.report_row(body(
             status="Out (separated or retired)", rank="Not disclosed / not applicable",
             highest_rank="O-3", community="_No response_", service="U.S. Marine Corps"), REVIEW)
-        self.assertEqual((row["service"], row["rank"], row["community"], row["industry"]),
-                         ("USMC", "O-3", "Not disclosed", "Not disclosed"))
+        self.assertEqual((row["service"], row["rank"], row["community"], row["industry"], row["separation_year"]),
+                         ("USMC", "O-3", "Not disclosed", "Not disclosed", "Not disclosed"))
+
+    def test_out_report_records_separation_year(self):
+        row = add_report.report_row(body(
+            status="Out (separated or retired)", rank="Not disclosed / not applicable", separation_year="2019"), REVIEW)
+        self.assertEqual(row["separation_year"], "2019")
+        self.assertEqual(add_report.report_row(body(), REVIEW)["separation_year"], "")
+
+    def test_issue_filed_before_separation_year_field_keeps_previous_year(self):
+        out = {"status": "Out (separated or retired)", "rank": "Not disclosed / not applicable"}
+        text = body(**out)
+        text = text.replace(f"### {add_report.LABELS['separation_year']}\n\n_No response_\n\n", "")
+        self.assertNotIn(add_report.LABELS["separation_year"], text)
+        self.assertEqual(add_report.report_row(text, REVIEW)["separation_year"], "Not disclosed")
+        legacy = add_report.report_row(body(**out, separation_year="2023"), REVIEW)
+        del legacy["separation_year"]
+        previous = add_report.previous_row(json.dumps(legacy))
+        self.assertEqual(previous["separation_year"], add_report.LEGACY_SEPARATION_YEAR)
+        self.assertEqual(add_report.report_row(text, REVIEW, previous), previous)
+        still_in = add_report.report_row(body(), REVIEW)
+        del still_in["separation_year"]
+        self.assertEqual(add_report.previous_row(json.dumps(still_in))["separation_year"], "")
 
     def test_accepts_issues_filed_with_legacy_highest_rank_label(self):
         text = body(status="Out (separated or retired)", rank="Not disclosed / not applicable", highest_rank="O-4")
@@ -56,7 +77,11 @@ class AddReportTests(unittest.TestCase):
     def test_rejects_invalid_reports(self):
         for answers in [{"consent": "- [X] one\n- [ ] two\n- [X] three"}, {"community": "Astronaut"},
                         {"as_of": "2026-10-05"}, {"industry": "Law"},
-                        {"status": "Out (separated or retired)"}]:
+                        {"status": "Out (separated or retired)"}, {"separation_year": "2020"},
+                        {"status": "Out (separated or retired)", "rank": "Not disclosed / not applicable",
+                         "separation_year": "2011"},
+                        {"status": "Out (separated or retired)", "rank": "Not disclosed / not applicable",
+                         "separation_year": "last year"}]:
             with self.subTest(answers=answers):
                 with self.assertRaises(ValueError):
                     add_report.report_row(body(**answers), REVIEW)
@@ -104,7 +129,8 @@ class AddReportTests(unittest.TestCase):
         row = add_report.report_row(body(), REVIEW)
         self.assertEqual(add_report.previous_row(json.dumps(row)), row)
         for change in [{"kind": "class"}, {"rank": "O-99"}, {"community": "Astronaut"},
-                       {"year": "2012; rm"}, {"extra": "x"}, {"service": "Navy"}]:
+                       {"year": "2012; rm"}, {"extra": "x"}, {"service": "Navy"},
+                       {"separation_year": "2020"}]:
             with self.subTest(change=change):
                 with self.assertRaises(ValueError):
                     add_report.previous_row(json.dumps(row | change))

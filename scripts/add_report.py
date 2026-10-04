@@ -32,11 +32,16 @@ LABELS = {
     "community": "Warfare community / designator (select all that apply)",
     "highest_rank": "Pay grade at separation — Out only (optional)",
     "industry": "Current industry — Out only (optional)",
+    "separation_year": "Year of separation — Out only (optional)",
     "as_of": "Status as of (YYYY-MM-DD)",
     "consent": "Voluntary participation",
 }
 # Earlier form labels, so issues filed before a field was renamed are still parsed when re-checked.
 LEGACY_LABELS = {"highest_rank": ["Highest pay grade held — Out only (optional)"]}
+# Fields added to the form later; issues filed before then have no section for them.
+OPTIONAL_LABELS = {"separation_year"}
+# Out reports accepted before the separation-year field existed were recorded as separating in 2023.
+LEGACY_SEPARATION_YEAR = "2023"
 STATUSES = {"Still in (active or reserve)": "still_in", "Out (separated or retired)": "out"}
 SERVICES = {
     "U.S. Navy": "USN", "U.S. Marine Corps": "USMC", "U.S. Army": "USA", "U.S. Air Force": "USAF",
@@ -53,14 +58,18 @@ def parse_sections(body):
     return sections
 
 
-def report_row(body, review_date):
-    """Return the aggregate CSV key fields for one issue body, or raise ValueError."""
+def report_row(body, review_date, previous=None):
+    """Return the aggregate CSV key fields for one issue body, or raise ValueError.
+
+    An out report filed before the separation-year field existed keeps the previously accepted
+    separation year, if any.
+    """
     sections = parse_sections(body.replace("\r\n", "\n"))
     for key, old_labels in LEGACY_LABELS.items():
         for old in old_labels:
             if LABELS[key] not in sections and old in sections:
                 sections[LABELS[key]] = sections.pop(old)
-    missing = [label for label in LABELS.values() if label not in sections]
+    missing = [label for key, label in LABELS.items() if label not in sections and key not in OPTIONAL_LABELS]
     if missing:
         raise ValueError(f"issue is missing form sections: {missing}")
     get = lambda key: sections[LABELS[key]]
@@ -75,16 +84,22 @@ def report_row(body, review_date):
     if reported > review_date:
         raise ValueError("status date cannot be in the future")
     rank, highest, industry = get("rank"), get("highest_rank"), get("industry")
+    has_separation = LABELS["separation_year"] in sections
+    separated = get("separation_year") if has_separation else ""
     if status == "still_in":
-        if highest not in BLANK or industry not in BLANK:
+        if highest not in BLANK or industry not in BLANK or separated not in BLANK:
             raise ValueError("still-in report includes out-only answers; ask the submitter to correct it")
         rank = "Not disclosed" if rank in BLANK else rank
-        industry = ""
+        industry = separated = ""
     else:
         if rank not in BLANK:
             raise ValueError("out report includes a current pay grade; ask the submitter to correct it")
         rank = "Not disclosed" if highest in BLANK else highest
         industry = "Not disclosed" if industry in BLANK else industry
+        if not has_separation and previous and previous.get("status") == "out":
+            separated = previous["separation_year"]
+        separated = "Not disclosed" if separated in BLANK else separated
+        builder.parse_separation_year(separated, status, year)
     raw = get("community")
     chosen = [] if raw in BLANK else [item.strip() for item in raw.split(", ")]
     unknown = [item for item in chosen if item not in builder.COMMUNITIES]
@@ -94,10 +109,11 @@ def report_row(body, review_date):
     return {
         "year": str(year), "kind": "voluntary", "service": service, "status": status, "rank": rank,
         "community": builder.COMMUNITY_SEPARATOR.join(chosen), "industry": industry,
+        "separation_year": separated,
     }
 
 
-ROW_KEYS = ["year", "kind", "service", "status", "rank", "community", "industry"]
+ROW_KEYS = ["year", "kind", "service", "status", "rank", "community", "industry", "separation_year"]
 
 
 def update_rows(rows, report, delta, review_date):
@@ -147,6 +163,9 @@ def apply(csv_path, report, delta, review_date):
 def previous_row(text):
     """Parse a previously accepted row (JSON) and check it only uses allowed values."""
     row = json.loads(text)
+    if isinstance(row, dict) and "separation_year" not in row:
+        # Accepted before the separation-year field existed; those out rows were set to 2023.
+        row = row | {"separation_year": LEGACY_SEPARATION_YEAR if row.get("status") == "out" else ""}
     if not isinstance(row, dict) or sorted(row) != sorted(ROW_KEYS) or row["kind"] != "voluntary":
         raise ValueError("previous accepted report is malformed")
     if not all(isinstance(value, str) for value in row.values()) or not row["year"].isdigit():
@@ -170,12 +189,12 @@ def main():
     args = parser.parse_args()
     body = sys.stdin.read() if args.issue_body == "-" else Path(args.issue_body).read_text(encoding="utf-8")
     try:
-        report = report_row(body, args.as_of)
+        if args.previous_json and args.subtract:
+            raise ValueError("--previous-json cannot be combined with --subtract")
+        previous = previous_row(args.previous_json) if args.previous_json else None
+        report = report_row(body, args.as_of, previous)
         changes = [(report, -1 if args.subtract else 1)]
-        if args.previous_json:
-            if args.subtract:
-                raise ValueError("--previous-json cannot be combined with --subtract")
-            previous = previous_row(args.previous_json)
+        if previous:
             changes = [] if previous == report else [(previous, -1)] + changes
         count = apply_changes(args.csv, changes, args.as_of) if changes else None
     except (ValueError, json.JSONDecodeError) as error:
