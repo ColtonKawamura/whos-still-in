@@ -4,6 +4,7 @@
 import argparse
 import csv
 import json
+import re
 from datetime import date
 from pathlib import Path
 
@@ -33,6 +34,25 @@ COMMUNITIES = [
     "Other service (Army / Air Force / Space Force / Coast Guard)", "Other", "Not disclosed",
 ]
 COMMUNITY_SEPARATOR = "; "
+EARLIEST_SEPARATION_YEAR = 1845
+
+
+def parse_separation_year(value, status, class_year=None):
+    """Return the canonical separation year: blank if still in, a year or "Not disclosed" if out."""
+    value = value or ""
+    if status == "still_in":
+        if value:
+            raise ValueError("still-in rows cannot have a separation year")
+        return value
+    if value == "Not disclosed":
+        return value
+    if not re.fullmatch(r"[0-9]{4}", value):
+        raise ValueError(f"invalid separation year: {value!r}")
+    year = int(value)
+    earliest = int(class_year) if class_year else EARLIEST_SEPARATION_YEAR
+    if not earliest <= year <= date.today().year:
+        raise ValueError(f"separation year must be between the class year and this year: {value!r}")
+    return value
 
 
 def parse_communities(value):
@@ -80,7 +100,8 @@ def read_sources(source_file):
                 source["sources"].append({"title": row["title"], "url": row["url"]})
             elif kind == "voluntary":
                 parse_communities(row["community"])
-                key = (year, row["service"], row["status"], row["rank"], row["community"], row["industry"])
+                key = (year, row["service"], row["status"], row["rank"], row["community"], row["industry"],
+                       row["separation_year"])
                 if key in seen_reports:
                     raise ValueError(f"duplicate voluntary aggregate: {key}")
                 seen_reports.add(key)
@@ -122,6 +143,7 @@ def build_voluntary(rows):
         report_dates.append(row["as_of"])
         industry = row.get("industry", "")
         community_list = parse_communities(row.get("community", ""))
+        separation_year = parse_separation_year(row.get("separation_year", ""), row["status"], row.get("year"))
         if row["status"] == "still_in" and row["rank"] in RANKS and industry == "":
             still_in += count
             counts[row["rank"]] += count
@@ -138,7 +160,8 @@ def build_voluntary(rows):
         if count:
             responses.append({
                 "status": row["status"], "service": row["service"], "rank": row["rank"],
-                "communities": community_list, "industry": industry or None, "count": count,
+                "communities": community_list, "industry": industry or None,
+                "separation_year": separation_year or None, "count": count,
             })
     total = still_in + out
     return {

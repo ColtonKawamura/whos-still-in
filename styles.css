@@ -20,7 +20,6 @@ h3 { margin-top: 0; }
 header p:last-child { margin-bottom: 0; }
 main { padding-block: 2rem; }
 .class-picker, .section-heading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
-.class-picker p { max-width: 25rem; color: var(--muted); }
 label { display: block; color: var(--navy); font-weight: 700; margin-bottom: .4rem; }
 select { padding: .7rem 2rem .7rem .8rem; border: 1px solid var(--navy); border-radius: .3rem; background: white; color: var(--navy); font: inherit; min-width: 13rem; }
 a { color: var(--navy); overflow-wrap: anywhere; }

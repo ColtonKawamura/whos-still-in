@@ -144,7 +144,7 @@ import json, pathlib, sys
 work, issue, action, marker, previous = pathlib.Path(sys.argv[1]), *sys.argv[2:]
 row = json.loads((work / "row.json").read_text())
 names = {"year": "Class", "service": "Service", "status": "Status", "rank": "Rank",
-         "community": "Community", "industry": "Industry"}
+         "community": "Community", "industry": "Industry", "separation_year": "Separation year"}
 lines = [
     f"{action}s the voluntary report from #{issue} to the aggregate counts in `data/cohorts.csv` "
     "and the derived JSON. Generated automatically from the issue form; no usernames or issue numbers are written to the data.",

@@ -15,6 +15,7 @@ const dimensions = {
   service: { label: "Current / last service", filter: "filter-service" },
   current_rank: { label: "Current pay grade (still in)", filter: "filter-current-rank", only: "still_in" },
   separation_rank: { label: "Pay grade at separation (out)", filter: "filter-separation-rank", only: "out" },
+  separation_year: { label: "Year of separation (out)", filter: "filter-separation-year", only: "out" },
   industry: { label: "Current industry (out)", filter: "filter-industry", only: "out" },
 };
 const palette = ["#00205B", "#C5B783", "#4A6FA5", "#74632F", "#8FA9D1", "#2E3B4E", "#E2D6A8", "#5C7C99", "#A38F4D", "#B8C4D6"];

@@ -1,13 +1,13 @@
-year,kind,service,status,rank,community,industry,count,as_of,title,url,notes
-2012,class,,,,,,1077,2026-10-04,,,"Coverage: 1,077 documented Navy and Marine Corps commissions only, not the entire Class of 2012. Contemporary reporting counted 1,099 graduates. The other 22 graduates' exact commissioning dispositions are unresolved here; other U.S. services are unavailable, not zero. They are excluded from the denominator."
-2012,service,USN,,,,,810,,,,
-2012,service,USMC,,,,,267,,,,
-2012,source,,,,,,,,U.S. Navy / DVIDS Class of 2012 commissioning caption,https://www.dvidshub.net/image/591206/us-naval-academy-class-2012,Caption reports 810 ensigns and 267 Marine second lieutenants. Obtained via public search excerpts; direct full-text retrieval failed due to DNS. Recheck before treating full breakdown as independently verified.
-2012,source,,,,,,,,U.S. Navy / DVIDS second commissioning caption,https://www.dvidshub.net/image/591210/us-naval-academy-class-2012,Corroborating caption for the commissioning subtotal.
-2012,source,,,,,,,,CBS Baltimore Class of 2012 graduation reporting,https://www.cbsnews.com/baltimore/news/about-1000-to-graduate-from-naval-academy/,"Reports 1,099 graduates; not a U.S. commissioned total."
-2012,source,,,,,,,,Eye On Annapolis contemporary graduation report,https://www.eyeonannapolis.net/2012/05/usna-class-of-2012-graduation/,Mentions 14 international graduates and other commissioning services; exact other-service counts unresolved.
-2012,source,,,,,,,,MyNavy HR NAVADMIN 202/25 active-duty officer promotions,https://www.mynavyhr.navy.mil/Portals/55/Messages/NAVADMIN/NAV2025/NAV25202.pdf,Official public promotion evidence. Includes multiple officer grades; not an academy-class roster. No names or rank counts have been extracted into this dataset.
-2012,source,,,,,,,,MyNavy HR NAVADMIN 2025 archive,https://www.mynavyhr.navy.mil/References/Messages/NAVADMIN-2025/,Official archive for further dated promotion evidence. Absence from a list does not show separation.
-2012,source,,,,,,,,Marine Corps October 2025 officer promotions,https://www.marines.mil/News/Messages/Messages-Display/Article/4315022/officer-promotions-for-october-2025-and-projected-officer-promotions-for-novemb/,Includes projected November promotions which must not be counted as completed promotions.
-2012,voluntary,USN,out,O-4,Special Operations (EOD),Tech / software,1,2026-10-04,,,
-2012,voluntary,USN,out,O-4,Aviation,Healthcare / medicine,1,2026-10-04,,,
+year,kind,service,status,rank,community,industry,separation_year,count,as_of,title,url,notes
+2012,class,,,,,,,1077,2026-10-04,,,"Coverage: 1,077 documented Navy and Marine Corps commissions only, not the entire Class of 2012. Contemporary reporting counted 1,099 graduates. The other 22 graduates' exact commissioning dispositions are unresolved here; other U.S. services are unavailable, not zero. They are excluded from the denominator."
+2012,service,USN,,,,,,810,,,,
+2012,service,USMC,,,,,,267,,,,
+2012,source,,,,,,,,,U.S. Navy / DVIDS Class of 2012 commissioning caption,https://www.dvidshub.net/image/591206/us-naval-academy-class-2012,Caption reports 810 ensigns and 267 Marine second lieutenants. Obtained via public search excerpts; direct full-text retrieval failed due to DNS. Recheck before treating full breakdown as independently verified.
+2012,source,,,,,,,,,U.S. Navy / DVIDS second commissioning caption,https://www.dvidshub.net/image/591210/us-naval-academy-class-2012,Corroborating caption for the commissioning subtotal.
+2012,source,,,,,,,,,CBS Baltimore Class of 2012 graduation reporting,https://www.cbsnews.com/baltimore/news/about-1000-to-graduate-from-naval-academy/,"Reports 1,099 graduates; not a U.S. commissioned total."
+2012,source,,,,,,,,,Eye On Annapolis contemporary graduation report,https://www.eyeonannapolis.net/2012/05/usna-class-of-2012-graduation/,Mentions 14 international graduates and other commissioning services; exact other-service counts unresolved.
+2012,source,,,,,,,,,MyNavy HR NAVADMIN 202/25 active-duty officer promotions,https://www.mynavyhr.navy.mil/Portals/55/Messages/NAVADMIN/NAV2025/NAV25202.pdf,Official public promotion evidence. Includes multiple officer grades; not an academy-class roster. No names or rank counts have been extracted into this dataset.
+2012,source,,,,,,,,,MyNavy HR NAVADMIN 2025 archive,https://www.mynavyhr.navy.mil/References/Messages/NAVADMIN-2025/,Official archive for further dated promotion evidence. Absence from a list does not show separation.
+2012,source,,,,,,,,,Marine Corps October 2025 officer promotions,https://www.marines.mil/News/Messages/Messages-Display/Article/4315022/officer-promotions-for-october-2025-and-projected-officer-promotions-for-novemb/,Includes projected November promotions which must not be counted as completed promotions.
+2012,voluntary,USN,out,O-4,Special Operations (EOD),Tech / software,2023,1,2026-10-04,,,
+2012,voluntary,USN,out,O-4,Aviation,Healthcare / medicine,2023,1,2026-10-04,,,

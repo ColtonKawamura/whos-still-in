@@ -90,7 +90,7 @@ class BuildDataTests(unittest.TestCase):
             {"service": "USMC", "status": "still_in", "rank": "O-5", "community": "Surface", "count": "1", "as_of": "2026-10-04"},
             {"service": "USN", "status": "still_in", "rank": "Not disclosed", "community": "Surface", "count": "1", "as_of": "2026-10-04"},
             {"service": "USN", "status": "out", "rank": "O-3", "community": "Not disclosed", "industry": "Tech / software",
-             "count": "3", "as_of": "2026-10-04"},
+             "separation_year": "2020", "count": "3", "as_of": "2026-10-04"},
         ]
         result = builder.build_voluntary(rows)
         ranks = {entry["rank"]: entry for entry in result["rank_distribution"]}
@@ -110,9 +110,9 @@ class BuildDataTests(unittest.TestCase):
     def test_out_highest_rank_and_industry_use_out_respondents_only(self):
         rows = [
             {"service": "USN", "status": "still_in", "rank": "O-4", "community": "Surface", "industry": "", "count": "5", "as_of": "2026-10-04"},
-            {"service": "USN", "status": "out", "rank": "O-3", "community": "Surface", "industry": "Tech / software", "count": "2", "as_of": "2026-10-04"},
-            {"service": "USMC", "status": "out", "rank": "O-4", "community": "Surface", "industry": "Law", "count": "1", "as_of": "2026-10-04"},
-            {"service": "USN", "status": "out", "rank": "Not disclosed", "community": "Surface", "industry": "Not disclosed", "count": "1", "as_of": "2026-10-04"},
+            {"service": "USN", "status": "out", "rank": "O-3", "community": "Surface", "industry": "Tech / software", "separation_year": "2020", "count": "2", "as_of": "2026-10-04"},
+            {"service": "USMC", "status": "out", "rank": "O-4", "community": "Surface", "industry": "Law", "separation_year": "2023", "count": "1", "as_of": "2026-10-04"},
+            {"service": "USN", "status": "out", "rank": "Not disclosed", "community": "Surface", "industry": "Not disclosed", "separation_year": "Not disclosed", "count": "1", "as_of": "2026-10-04"},
         ]
         result = builder.build_voluntary(rows)
         highest = {entry["rank"]: entry for entry in result["highest_rank_distribution"]}
@@ -136,9 +136,14 @@ class BuildDataTests(unittest.TestCase):
             with self.subTest(key=key):
                 with self.assertRaises(ValueError):
                     builder.build_voluntary([dict(row, **{key: value})])
-        out_row = dict(row, status="out", industry="Law")
+        with self.assertRaises(ValueError):
+            builder.build_voluntary([dict(row, separation_year="2020")])
+        out_row = dict(row, status="out", industry="Law", separation_year="2020", year="2012")
         builder.build_voluntary([out_row])
-        for key, value in [("industry", ""), ("industry", "Astronaut"), ("rank", ""), ("rank", "O-99")]:
+        builder.build_voluntary([dict(out_row, separation_year="Not disclosed")])
+        for key, value in [("industry", ""), ("industry", "Astronaut"), ("rank", ""), ("rank", "O-99"),
+                           ("separation_year", ""), ("separation_year", "20"), ("separation_year", "2011"),
+                           ("separation_year", str(date.today().year + 1)), ("separation_year", "２０２０")]:
             with self.subTest(out_key=key, value=value):
                 with self.assertRaises(ValueError):
                     builder.build_voluntary([dict(out_row, **{key: value})])
@@ -147,7 +152,7 @@ class BuildDataTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "cohorts.csv"
             source = (ROOT / "data" / "cohorts.csv").read_text()
-            source += "2012,service,USN,,,,,810,,,,\n"
+            source += "2012,service,USN,,,,,,810,,,,\n"
             path.write_text(source)
             with self.assertRaises(ValueError):
                 builder.read_sources(path)
@@ -158,7 +163,7 @@ class BuildDataTests(unittest.TestCase):
             output = Path(directory) / "public"
             source = "".join(line for line in (ROOT / "data" / "cohorts.csv").read_text().splitlines(True)
                              if ",voluntary," not in line)
-            report = "2012,voluntary,USN,still_in,O-4,Surface,,2,2026-10-04,,,\n"
+            report = "2012,voluntary,USN,still_in,O-4,Surface,,,2,2026-10-04,,,\n"
             path.write_text(source + report)
             builder.build(path, output)
             result = json.loads((output / "2012.json").read_text())
@@ -167,7 +172,7 @@ class BuildDataTests(unittest.TestCase):
             rank = next(entry for entry in result["voluntary"]["rank_distribution"]
                         if entry["rank"] == "O-4")
             self.assertEqual(rank["percent"], 100)
-            out_report = '2012,voluntary,USMC,out,O-3,Infantry,"Construction / trades / real estate",1,2026-10-04,,,\n'
+            out_report = '2012,voluntary,USMC,out,O-3,Infantry,"Construction / trades / real estate",2019,1,2026-10-04,,,\n'
             path.write_text(source + report + out_report)
             builder.build(path, output)
             result = json.loads((output / "2012.json").read_text())
@@ -175,6 +180,8 @@ class BuildDataTests(unittest.TestCase):
             industry = next(entry for entry in result["voluntary"]["industry_distribution"]
                             if entry["industry"] == "Construction / trades / real estate")
             self.assertEqual(industry["percent"], 100)
+            out = next(entry for entry in result["voluntary"]["responses"] if entry["status"] == "out")
+            self.assertEqual(out["separation_year"], "2019")
             path.write_text(source + report + report)
             with self.assertRaises(ValueError):
                 builder.read_sources(path)
@@ -184,9 +191,9 @@ class BuildDataTests(unittest.TestCase):
             {"service": "USN", "status": "still_in", "rank": "O-4", "community": "Surface; Foreign Area Officer",
              "industry": "", "count": "2", "as_of": "2026-10-04"},
             {"service": "USN", "status": "out", "rank": "O-3", "community": "Surface",
-             "industry": "Law", "count": "1", "as_of": "2026-10-04"},
+             "industry": "Law", "separation_year": "2021", "count": "1", "as_of": "2026-10-04"},
             {"service": "USMC", "status": "out", "rank": "O-3", "community": "Not disclosed",
-             "industry": "Law", "count": "1", "as_of": "2026-10-04"},
+             "industry": "Law", "separation_year": "Not disclosed", "count": "1", "as_of": "2026-10-04"},
         ]
         result = builder.build_voluntary(rows)
         communities = {entry["community"]: entry for entry in result["community_distribution"]}
@@ -197,6 +204,8 @@ class BuildDataTests(unittest.TestCase):
         self.assertEqual(result["reported_multiple_communities"], 2)
         self.assertEqual(result["responses"][0]["communities"], ["Surface", "Foreign Area Officer"])
         self.assertIsNone(result["responses"][0]["industry"])
+        self.assertIsNone(result["responses"][0]["separation_year"])
+        self.assertEqual(result["responses"][1]["separation_year"], "2021")
 
     def test_rejects_invalid_community_values(self):
         row = {"service": "USN", "status": "still_in", "rank": "O-4", "industry": "",

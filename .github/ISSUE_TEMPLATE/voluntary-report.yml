@@ -1,5 +1,5 @@
 name: Voluntary serving-status report
-description: Report or update your own USNA class, serving status, pay grade, warfare community, and (optionally) pay grade at separation and industry if out.
+description: Report or update your own USNA class, serving status, pay grade, warfare community, and (optionally) pay grade at separation, separation year, and industry if out.
 title: "[Voluntary report] Class of "
 labels: ["voluntary-report"]
 body:
@@ -161,6 +161,14 @@ body:
         - Student / graduate school
         - Not working / retired / caregiving
         - Other
+    validations:
+      required: false
+  - type: input
+    id: separation-year
+    attributes:
+      label: Year of separation — Out only (optional)
+      description: If you are out, enter the four-digit year you separated or retired (for example 2019). If still in, leave blank.
+      placeholder: "2019"
     validations:
       required: false
   - type: input
