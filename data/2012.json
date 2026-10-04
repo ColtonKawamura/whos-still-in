@@ -43,7 +43,7 @@
   ],
   "voluntary": {
     "reported_still_in": 0,
-    "reported_out": 1,
+    "reported_out": 2,
     "as_of": "2026-10-04",
     "rank_distribution": [
       {
@@ -150,7 +150,7 @@
       },
       {
         "rank": "O-4",
-        "count": 1,
+        "count": 2,
         "percent": 100.0
       },
       {
@@ -228,7 +228,7 @@
       {
         "industry": "Tech / software",
         "count": 1,
-        "percent": 100.0
+        "percent": 50.0
       },
       {
         "industry": "Law",
@@ -267,8 +267,8 @@
       },
       {
         "industry": "Healthcare / medicine",
-        "count": 0,
-        "percent": 0.0
+        "count": 1,
+        "percent": 50.0
       },
       {
         "industry": "Education / academia",
@@ -345,8 +345,8 @@
       },
       {
         "community": "Aviation",
-        "count": 0,
-        "percent": 0.0
+        "count": 1,
+        "percent": 50.0
       },
       {
         "community": "Special Warfare (SEAL)",
@@ -356,7 +356,7 @@
       {
         "community": "Special Operations (EOD)",
         "count": 1,
-        "percent": 100.0
+        "percent": 50.0
       },
       {
         "community": "Nuclear Power (Naval Reactors / Instructor)",
@@ -508,6 +508,16 @@
           "Special Operations (EOD)"
         ],
         "industry": "Tech / software",
+        "count": 1
+      },
+      {
+        "status": "out",
+        "service": "USN",
+        "rank": "O-4",
+        "communities": [
+          "Aviation"
+        ],
+        "industry": "Healthcare / medicine",
         "count": 1
       }
     ]
