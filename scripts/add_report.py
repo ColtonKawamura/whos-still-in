@@ -103,7 +103,7 @@ ROW_KEYS = ["year", "kind", "service", "status", "rank", "community", "industry"
 def update_rows(rows, report, delta, review_date):
     """Add delta respondents to the report's aggregate row in-place; return the new count."""
     if not any(row["year"] == report["year"] and row["kind"] == "class" for row in rows):
-        raise ValueError(f"class {report['year']} has no cited model rows yet")
+        raise ValueError(f"class {report['year']} has no cited class rows yet")
     match = next((row for row in rows if all(row[key] == report[key] for key in ROW_KEYS)), None)
     if match is None:
         if delta < 0:

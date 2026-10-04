@@ -5,7 +5,6 @@ import argparse
 import csv
 import json
 from datetime import date
-from decimal import Decimal, ROUND_HALF_UP
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -67,22 +66,14 @@ def read_sources(source_file):
                 if "commissioned_total" in source:
                     raise ValueError(f"duplicate class metadata: {year}")
                 source.update(
-                    commissioned_total=int(row["count"]), as_of=row["as_of"],
-                    confidence=row["title"], coverage_note=row["notes"],
+                    commissioned_total=int(row["count"]), as_of=row["as_of"], coverage_note=row["notes"],
                 )
-            elif kind == "method":
-                if "method" in source:
-                    raise ValueError(f"duplicate method: {year}")
-                source["method"] = row["notes"]
             elif kind == "service":
                 key = (year, row["service"])
                 if not row["service"] or key in seen_services:
                     raise ValueError(f"empty or duplicate commissioning service: {key}")
                 seen_services.add(key)
-                source["by_service"][row["service"]] = {
-                    "commissioned": int(row["count"]),
-                    "assumed_retention_rate": row["retention_rate"],
-                }
+                source["by_service"][row["service"]] = {"commissioned": int(row["count"])}
             elif kind == "source":
                 if not row["title"] or not row["url"].startswith("https://"):
                     raise ValueError("sources require a title and HTTPS URL")
@@ -97,7 +88,7 @@ def read_sources(source_file):
             else:
                 raise ValueError(f"unknown CSV row kind: {kind}")
     for source in classes.values():
-        for field in ["commissioned_total", "as_of", "confidence", "coverage_note", "method"]:
+        for field in ["commissioned_total", "as_of", "coverage_note"]:
             if not source.get(field):
                 raise ValueError(f"missing class metadata: {field}")
         if not source["sources"]:
@@ -174,32 +165,17 @@ def build_class(source):
     by_service = {}
     for name, service in services.items():
         count = service["commissioned"]
-        rate = Decimal(str(service["assumed_retention_rate"]))
-        if type(count) is not int or count < 0 or not rate.is_finite() or not 0 <= rate <= 1:
-            raise ValueError(f"invalid commissioning count or retention assumption: {name}")
-        still_in = int((count * rate).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
-        by_service[name] = {
-            "commissioned": count,
-            "estimated_still_in": still_in,
-            "estimated_out": count - still_in,
-            "assumed_retention_rate": float(rate),
-        }
+        if type(count) is not int or count < 0:
+            raise ValueError(f"invalid commissioning count: {name}")
+        by_service[name] = {"commissioned": count}
     total = sum(service["commissioned"] for service in by_service.values())
     if total <= 0 or total != source["commissioned_total"]:
         raise ValueError("service counts must sum to the positive commissioned_total")
-    still_in = sum(service["estimated_still_in"] for service in by_service.values())
-    percent_in = round(100 * still_in / total, 1)
     return {
         "year": year,
         "commissioned_total": total,
         "by_service": by_service,
-        "estimated_still_in": still_in,
-        "estimated_out": total - still_in,
-        "percent_in": percent_in,
-        "percent_out": round(100 - percent_in, 1),
         "as_of": source["as_of"],
-        "method": source["method"],
-        "confidence": source["confidence"],
         "coverage_note": source["coverage_note"],
         "sources": source["sources"],
         "voluntary": build_voluntary(source.get("voluntary_rows", [])),

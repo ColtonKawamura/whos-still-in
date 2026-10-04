@@ -282,54 +282,26 @@ function drillDown(dimension, value) {
 }
 
 function render(data) {
+  const total = data.commissioned_total;
+  const stillIn = data.voluntary.reported_still_in;
+  const out = data.voluntary.reported_out;
+  const unreported = Math.max(0, total - stillIn - out);
+  const pct = (value) => total ? `${(100 * value / total).toFixed(1)}%` : "—";
+  const people = (value) => `${number.format(value)} classmate${value === 1 ? "" : "s"}`;
   text("class-title", `Class of ${data.year}`);
-  text("confidence", data.confidence);
-  text("coverage-note", data.coverage_note);
-  text("percent-in", `${data.percent_in.toFixed(1)}%`);
-  text("percent-out", `${data.percent_out.toFixed(1)}%`);
-  text("count-in", `${number.format(data.estimated_still_in)} classmates (estimated)`);
-  text("count-out", `${number.format(data.estimated_out)} classmates (estimated)`);
-  text("total", number.format(data.commissioned_total));
-  text("as-of", data.as_of);
-  document.getElementById("as-of").dateTime = data.as_of;
-  text("method", data.method);
+  text("percent-in", pct(stillIn));
+  text("percent-out", pct(out));
+  text("percent-unreported", pct(unreported));
+  text("count-in", people(stillIn));
+  text("count-out", people(out));
+  text("count-unreported", people(unreported));
+  text("total", number.format(total));
+  const updated = data.voluntary.as_of || data.as_of;
+  text("as-of", updated);
+  document.getElementById("as-of").dateTime = updated;
   renderVoluntary(data);
   document.getElementById("report-link").href =
     `https://github.com/ColtonKawamura/whos-still-in/issues/new?template=voluntary-report.yml&title=${encodeURIComponent(`[Voluntary report] Class of ${data.year}`)}`;
-
-  const rows = document.getElementById("service-rows");
-  rows.replaceChildren();
-  for (const [service, counts] of Object.entries(data.by_service)) {
-    const row = document.createElement("tr");
-    const heading = document.createElement("th");
-    heading.scope = "row";
-    heading.textContent = serviceLabels[service] || service;
-    row.append(heading);
-    for (const value of [
-      number.format(counts.commissioned),
-      number.format(counts.estimated_still_in),
-      number.format(counts.estimated_out),
-      `${(counts.assumed_retention_rate * 100).toFixed(1)}%`,
-    ]) {
-      const cell = document.createElement("td");
-      cell.textContent = value;
-      row.append(cell);
-    }
-    rows.append(row);
-  }
-
-  const sources = document.getElementById("sources");
-  sources.replaceChildren();
-  for (const source of data.sources) {
-    const item = document.createElement("li");
-    const link = document.createElement("a");
-    const url = new URL(source.url);
-    if (!["https:", "http:"].includes(url.protocol)) continue;
-    link.href = url.href;
-    link.textContent = source.title;
-    item.append(link);
-    sources.append(item);
-  }
 
   if (chart) {
     chart.destroy();
@@ -338,7 +310,7 @@ function render(data) {
   const canvas = document.getElementById("status-chart");
   const chartWrap = canvas.parentElement;
   const note = document.getElementById("chart-note");
-  canvas.setAttribute("aria-label", `Class of ${data.year}: estimated ${data.percent_in}% still in and ${data.percent_out}% out.`);
+  canvas.setAttribute("aria-label", `Class of ${data.year}: ${pct(stillIn)} reported still in, ${pct(out)} reported out, ${pct(unreported)} unreported.`);
   chartWrap.hidden = false;
   note.hidden = true;
   try {
@@ -346,10 +318,10 @@ function render(data) {
     chart = new Chart(canvas, {
       type: "doughnut",
       data: {
-        labels: ["Still in (estimated)", "Out (estimated)"],
+        labels: ["Still in", "Out", "Unreported"],
         datasets: [{
-          data: [data.estimated_still_in, data.estimated_out],
-          backgroundColor: ["#00205B", "#C5B783"],
+          data: [stillIn, out, unreported],
+          backgroundColor: ["#00205B", "#C5B783", "#D9DEE7"],
           borderColor: "#ffffff",
           borderWidth: 3,
         }],
@@ -363,7 +335,7 @@ function render(data) {
           legend: { display: false },
           tooltip: {
             callbacks: {
-              label: (context) => `${context.label}: ${number.format(context.raw)} (${(context.raw / data.commissioned_total * 100).toFixed(1)}%)`,
+              label: (context) => `${context.label}: ${number.format(context.raw)} (${pct(context.raw)})`,
             },
           },
         },

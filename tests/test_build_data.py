@@ -19,33 +19,27 @@ class BuildDataTests(unittest.TestCase):
             "year": 2012,
             "commissioned_total": 11,
             "by_service": {
-                "USN": {"commissioned": 7, "assumed_retention_rate": 0.5},
-                "USMC": {"commissioned": 4, "assumed_retention_rate": 0.25},
+                "USN": {"commissioned": 7},
+                "USMC": {"commissioned": 4},
             },
             "as_of": "2026-10-04",
-            "method": "Illustrative assumptions, not observed retention.",
-            "confidence": "Low",
             "coverage_note": "Documented commissions only.",
             "sources": [{"title": "Example source", "url": "https://example.com"}],
         }
 
-    def test_rounding_and_complements(self):
+    def test_publishes_commissions_without_estimates(self):
         result = builder.build_class(self.source)
-        self.assertEqual(result["by_service"]["USN"]["estimated_still_in"], 4)
-        self.assertEqual(result["estimated_still_in"], 5)
-        self.assertEqual(result["estimated_out"], 6)
-        self.assertEqual(result["percent_in"], 45.5)
-        self.assertEqual(result["percent_in"] + result["percent_out"], 100)
+        self.assertEqual(result["commissioned_total"], 11)
+        self.assertEqual(result["by_service"]["USN"], {"commissioned": 7})
         self.assertEqual(result["coverage_note"], self.source["coverage_note"])
+        for key in ["estimated_still_in", "estimated_out", "percent_in", "percent_out", "method", "confidence"]:
+            self.assertNotIn(key, result)
 
-    def test_rejects_invalid_counts_and_rates(self):
-        for count, rate in [(-1, 0.5), (1.5, 0.5), (True, 0.5),
-                            (7, -0.1), (7, 1.1), (7, "NaN"), (7, "Infinity")]:
-            with self.subTest(count=count, rate=rate):
+    def test_rejects_invalid_counts(self):
+        for count in [-1, 1.5, True]:
+            with self.subTest(count=count):
                 source = copy.deepcopy(self.source)
-                source["by_service"]["USN"] = {
-                    "commissioned": count, "assumed_retention_rate": rate,
-                }
+                source["by_service"]["USN"] = {"commissioned": count}
                 with self.assertRaises(ValueError):
                     builder.build_class(source)
 
@@ -86,7 +80,7 @@ class BuildDataTests(unittest.TestCase):
                 if generated.name != "index.json":
                     data = json.loads(generated.read_text())
                     self.assertEqual(
-                        data["estimated_still_in"] + data["estimated_out"],
+                        sum(service["commissioned"] for service in data["by_service"].values()),
                         data["commissioned_total"],
                     )
 
@@ -153,7 +147,7 @@ class BuildDataTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "cohorts.csv"
             source = (ROOT / "data" / "cohorts.csv").read_text()
-            source += "2012,service,USN,,,,810,0.40,,,,\n"
+            source += "2012,service,USN,,,,,810,,,,\n"
             path.write_text(source)
             with self.assertRaises(ValueError):
                 builder.read_sources(path)
@@ -164,16 +158,16 @@ class BuildDataTests(unittest.TestCase):
             output = Path(directory) / "public"
             source = "".join(line for line in (ROOT / "data" / "cohorts.csv").read_text().splitlines(True)
                              if ",voluntary," not in line)
-            report = "2012,voluntary,USN,still_in,O-4,Surface,,2,,2026-10-04,,,\n"
+            report = "2012,voluntary,USN,still_in,O-4,Surface,,2,2026-10-04,,,\n"
             path.write_text(source + report)
             builder.build(path, output)
             result = json.loads((output / "2012.json").read_text())
-            self.assertEqual(result["estimated_still_in"], 417)
+            self.assertEqual(result["commissioned_total"], 1077)
             self.assertEqual(result["voluntary"]["reported_still_in"], 2)
             rank = next(entry for entry in result["voluntary"]["rank_distribution"]
                         if entry["rank"] == "O-4")
             self.assertEqual(rank["percent"], 100)
-            out_report = '2012,voluntary,USMC,out,O-3,Infantry,"Construction / trades / real estate",1,,2026-10-04,,,\n'
+            out_report = '2012,voluntary,USMC,out,O-3,Infantry,"Construction / trades / real estate",1,2026-10-04,,,\n'
             path.write_text(source + report + out_report)
             builder.build(path, output)
             result = json.loads((output / "2012.json").read_text())
